@@ -39,18 +39,15 @@ async function getDividend() {
     };
 
     var options = {
-      url: "https://api.nasdaq.com/api/quote/MSFT/dividends?assetclass=stocks",
+      url: "https://api.nasdaq.com/api/quote/SPGI/dividends?assetclass=stocks",
       headers: headers,
     };
 
     function callback(error, response, body) {
       if (!error && response.statusCode == 200) {
-        // console.log(body);
+        console.log(body);
 
         const $ = cheerio.load(body);
-
-        
-         
       }
     }
 
@@ -63,4 +60,3 @@ async function getDividend() {
 getDividend();
 
 app.listen(port, () => console.log(`Server is running on PORT ${port}`));
-
