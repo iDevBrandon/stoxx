@@ -11,13 +11,11 @@ import * as cheerio from "cheerio";
 
 export const getDividendYield = async (symbol) => {
   return await axios
-    .get(
-      `https://www.nasdaq.com/market-activity/stocks/${symbol}/dividend-history`
-    )
+    .get(`https://www.digrin.com/stocks/detail/${symbol}/`)
     .then((html) => {
       const $ = cheerio.load(html.data);
       return $(
-        "div.quote-detail__content.quote-detail__content--dividend.dividend-history-content > div.layout.layout--2-col-large > div > div.dividend-history.dividend-history--loaded > ul > li:nth-child(2)"
+        "body > div.container > div.row > div.col-sm-3 > p:nth-child(32) > span > strong"
       ).html();
     });
 };
