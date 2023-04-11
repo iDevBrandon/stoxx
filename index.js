@@ -1,8 +1,12 @@
 const express = require("express");
 const request = require("request-promise");
+const axios = require("axios");
+const cheerio = require("cheerio");
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+
+let dividends = [];
 
 app.use(express.json());
 
@@ -15,9 +19,27 @@ app.get("/", (req, res) => {
 app.get("/stocks/:symbol", async (req, res) => {
   const { symbol } = req.params;
   try {
+    axios
+      .get(`https://www.digrin.com/stocks/detail/${symbol}/`)
+      .then((response) => {
+        const html = response.data;
+        const $ = cheerio.load(html);
 
+        $("h2", html).each(function () {
+          const name = $(this).text();
+
+          dividends.push(name);
+        });
+
+        $('p:contains("DGR5")', html).each(function () {
+          const dgrFive = $(this).text();
+
+          dividends.push(dgrFive);
+        });
+        res.json(dividends);
+      });
   } catch (err) {
-    res.json(err)
+    res.json(err);
   }
 });
 
