@@ -20,7 +20,7 @@ app.get("/stocks/:symbol", async (req, res) => {
   const { symbol } = req.params;
   try {
     axios
-      .get(`https://cors.bridged.cc/https://www.digrin.com/stocks/detail/${symbol}/`)
+      .get(`https://www.digrin.com/stocks/detail/${symbol}/`)
       .then((response) => {
         const html = response.data;
         const $ = cheerio.load(html);
