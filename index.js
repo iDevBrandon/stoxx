@@ -6,8 +6,6 @@ const cheerio = require("cheerio");
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-let dividends = [];
-
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -17,6 +15,8 @@ app.get("/", (req, res) => {
 // Get stocks data
 
 app.get("/stocks/:symbol", async (req, res) => {
+  let dividends = [];
+
   const { symbol } = req.params;
   try {
     axios
