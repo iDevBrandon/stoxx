@@ -7,6 +7,10 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 app.use(express.json());
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  next();
+});
 
 app.get("/", (req, res) => {
   res.send("Welcome to OXINION Finance!");
@@ -20,7 +24,7 @@ app.get("/stocks/:symbol", async (req, res) => {
   const { symbol } = req.params;
   try {
     axios
-      .get(`https://www.digrin.com/stocks/detail/${symbol}/`)
+      .get(`https://my-simple-proxy.herokuapp.com/https://www.digrin.com/stocks/detail/${symbol}/`)
       .then((response) => {
         const html = response.data;
         const $ = cheerio.load(html);
