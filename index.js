@@ -1,45 +1,18 @@
-const express = require("express");
-const request = require("request-promise");
-const axios = require("axios");
-const cheerio = require("cheerio");
+const jsonServer = require("json-server");
+const cors = require("cors");
+const path = require("path");
 
-const app = express();
-const PORT = process.env.PORT || 8000;
+const server = jsonServer.create();
+const router = jsonServer.router(path.join(__dirname, "db.json"));
+const middlewares = jsonServer.defaults();
 
-app.use(express.json());
+server.use(cors());
+server.use(jsonServer.bodyParser);
+server.use(middlewares);
+server.use(router);
 
-app.get("/", (req, res) => {
-  res.send("Welcome to OXINION Finance!");
-});
+const PORT = 8000;
 
-// Get stocks data
-
-app.get("/stocks/:symbol", async (req, res) => {
-  const { symbol } = req.params;
-  try {
-    const response = await axios.get(`https://www.digrin.com/stocks/detail/${symbol}/`);
-    const html = response.data;
-    const $ = cheerio.load(html);
-
-    const dividends = [];
-    $("h2").each(function () {
-      const name = $(this).text();
-      dividends.push(name);
-    });
-
-    $('p:contains("DGR5")').each(function () {
-      const dgrFive = $(this).text();
-      dividends.push(dgrFive);
-    });
-    res.json(dividends);
-  } catch (err) {
-    res.json(err);
-  }
-});
-
-
-//stocks?symbol={ticker}
-
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`JSON Server is running on http://localhost:${PORT}`);
 });
