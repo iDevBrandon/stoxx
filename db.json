@@ -1,6 +1,11 @@
 {
   "stocks": [
     {
+      "companyName": "ASML",
+      "symbol": "ASML",
+      "dateUpdated": "May 12, 2020"
+    },
+    {
       "companyName": "West Pharmaceutical Services",
       "symbol": "WST",
       "dateUpdated": "May 22, 2020"
