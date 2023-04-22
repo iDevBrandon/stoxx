@@ -1,0 +1,19 @@
+{
+  "stocks": [
+    {
+      "companyName": "West Pharmaceutical Services",
+      "symbol": "WST",
+      "dateUpdated": "May 22, 2020"
+    },
+    {
+      "companyName": "Domino's Pizza",
+      "symbol": "DPZ",
+      "dateUpdated": "May 12, 2020"
+    },
+    {
+      "companyName": "Dexcom",
+      "symbol": "DXCM",
+      "dateUpdated": "May 12, 2020"
+    }
+  ]
+}

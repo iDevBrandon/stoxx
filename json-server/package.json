@@ -1,0 +1,16 @@
+{
+  "name": "my-json-server",
+  "version": "1.0.0",
+  "description": "A simple JSON Server",
+  "main": "index.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "json-serve": "^0.1.0",
+    "json-server": "^0.17.3",
+    "nodemon": "^2.0.22"
+  },
+  "scripts": {
+    "start": "json-server --watch db.json --port 3000",
+    "test": "jest"
+  }
+}
