@@ -20,5 +20,322 @@
       "symbol": "DXCM",
       "dateUpdated": "May 12, 2020"
     }
+  ],
+  "Portfolios": [
+    {
+      "name": "10-year Treasury Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 1,
+          "etf_ticker": "IEF"
+        }
+      ]
+    },
+    {
+      "name": "Aggressive Global Income Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.8,
+          "etf_ticker": "VTI"
+        },
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.2,
+          "etf_ticker": "BND"
+        }
+      ]
+    },
+    {
+      "name": "Alexander Green Gone Fishin' Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.3,
+          "etf_ticker": "BND"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.65,
+          "etf_ticker": "VTI"
+        },
+        {
+          "asset_type": "Commodities",
+          "allocation_percentage": 0.05,
+          "etf_ticker": "GLD"
+        }
+      ]
+    },
+    {
+      "name": "All Country World 20/80 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.8,
+          "etf_ticker": "AGG"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.2,
+          "etf_ticker": "ACWI"
+        }
+      ]
+    },
+    {
+      "name": "All Country World 40/60 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.6,
+          "etf_ticker": "BNDX"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.4,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "All Country World 60/40 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.4,
+          "etf_ticker": "BND"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.6,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "All Country World 80/20 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.2,
+          "etf_ticker": "BND"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.8,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "All Country World 60/40 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.4,
+          "etf_ticker": "BND"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.6,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "All Country World 80/20 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.2,
+          "etf_ticker": "BND"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.8,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "All Country World Bonds Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 1.0,
+          "etf_ticker": "BND"
+        }
+      ]
+    },
+    {
+      "name": "All Country World Stocks Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 1.0,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "Alpha Architect Robust Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.7,
+          "etf_ticker": "VTI"
+        },
+        {
+          "asset_type": "Commodities",
+          "allocation_percentage": 0.1,
+          "etf_ticker": "GLD"
+        },
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.2,
+          "etf_ticker": "BND"
+        }
+      ]
+    },
+    {
+      "name": "Andrew Tobias Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.6667,
+          "etf_ticker": "VTI"
+        },
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.3333,
+          "etf_ticker": "BND"
+        }
+      ]
+    },
+    {
+      "name": "Ben Stein Long Term Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.2,
+          "etf_ticker": "BND"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.8,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "Ben Stein Perfect Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.2,
+          "etf_ticker": "AGG"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.8,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "Betterment Robo Advisor 0 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 1,
+          "etf_ticker": "SHY"
+        }
+      ]
+    },
+    {
+      "name": "Betterment Robo Advisor 10 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.901,
+          "etf_ticker": "BND"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.099,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "Betterment Robo Advisor 100 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 1,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "Betterment Robo Advisor 20 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.801,
+          "etf_ticker": "BND"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.199,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "Betterment Robo Advisor 50 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.501,
+          "etf_ticker": "BND"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.499,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "Betterment Robo Advisor 80 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.2,
+          "etf_ticker": "BND"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.8,
+          "etf_ticker": "VTI"
+        }
+      ]
+    },
+    {
+      "name": "Betterment Robo Advisor 90 Portfolio",
+      "allocation": [
+        {
+          "asset_type": "Fixed Income",
+          "allocation_percentage": 0.099,
+          "etf_ticker": "BND"
+        },
+        {
+          "asset_type": "Stocks",
+          "allocation_percentage": 0.901,
+          "etf_ticker": "VTI"
+        }
+      ]
+    }
   ]
 }
