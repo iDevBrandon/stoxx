@@ -1,29 +1,5 @@
 import puppeteer from "puppeteer";
 
-// Function to scrape DXY value from TradingView
-const scrapeDXY = async (browser) => {
-  const page = await browser.newPage();
-  const url = "https://www.tradingview.com/symbols/TVC-DXY/";
-
-  try {
-    await page.goto(url, { waitUntil: "networkidle2" });
-    await page.waitForSelector(".last-JWoJqCpY.js-symbol-last");
-
-    const dxyValue = await page.evaluate(() => {
-      const valueElement = document.querySelector(
-        ".last-JWoJqCpY.js-symbol-last"
-      );
-      return valueElement ? valueElement.textContent.trim() : null;
-    });
-
-    console.log("DXY Value:", dxyValue);
-  } catch (error) {
-    console.error("Error scraping DXY:", error);
-  } finally {
-    await page.close();
-  }
-};
-
 // Function to scrape Fear and Greed Index from CNN
 const scrapeFearAndGreedIndex = async (browser) => {
   const page = await browser.newPage();
@@ -43,6 +19,54 @@ const scrapeFearAndGreedIndex = async (browser) => {
     console.log("Fear and Greed Index:", fearAndGreedIndex);
   } catch (error) {
     console.error("Error scraping Fear and Greed Index:", error);
+  } finally {
+    await page.close();
+  }
+};
+
+// Function to scrape VIX value from Yahoo Finance
+const scrapeVIX = async (browser) => {
+  const page = await browser.newPage();
+  const url = "https://www.tradingview.com/symbols/TVC-VIX/"; // Replace with the actual URL
+
+  try {
+    await page.goto(url, { waitUntil: "networkidle2" });
+    await page.waitForSelector(".last-JWoJqCpY.js-symbol-last");
+
+    const vixValue = await page.evaluate(() => {
+      const valueElement = document.querySelector(
+        ".last-JWoJqCpY.js-symbol-last"
+      );
+      return valueElement ? valueElement.textContent.trim() : null;
+    });
+
+    console.log("VIX Value:", vixValue);
+  } catch (error) {
+    console.error("Error scraping VIX:", error);
+  } finally {
+    await page.close();
+  }
+};
+
+// Function to scrape DXY value from TradingView
+const scrapeDXY = async (browser) => {
+  const page = await browser.newPage();
+  const url = "https://www.tradingview.com/symbols/TVC-DXY/";
+
+  try {
+    await page.goto(url, { waitUntil: "networkidle2" });
+    await page.waitForSelector(".last-JWoJqCpY.js-symbol-last");
+
+    const dxyValue = await page.evaluate(() => {
+      const valueElement = document.querySelector(
+        ".last-JWoJqCpY.js-symbol-last"
+      );
+      return valueElement ? valueElement.textContent.trim() : null;
+    });
+
+    console.log("DXY Value:", dxyValue);
+  } catch (error) {
+    console.error("Error scraping DXY:", error);
   } finally {
     await page.close();
   }
@@ -96,11 +120,14 @@ const scrapeBI = async (browser) => {
 const scrape = async () => {
   const browser = await puppeteer.launch({ headless: false });
 
-  // Scrape DXY Value
-  await scrapeDXY(browser);
-
   // Scrape Fear and Greed Index
   await scrapeFearAndGreedIndex(browser);
+
+  // Scrape VIX Value
+  await scrapeVIX(browser);
+
+  // Scrape DXY Value
+  await scrapeDXY(browser);
 
   // Scrape BI Value
   await scrapeBI(browser);
