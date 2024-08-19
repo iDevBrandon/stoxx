@@ -48,6 +48,48 @@ const scrapeVIX = async (browser) => {
   }
 };
 
+const scrapeRSI = async (browser) => {
+  const page = await browser.newPage();
+  const url = "https://finviz.com/quote.ashx?t=VOO&p=d";
+
+  try {
+    await page.goto(url, { waitUntil: "networkidle2" });
+    await page.waitForSelector("table.snapshot-table2"); // Wait for the table to be loaded
+
+    const rsiValue = await page.evaluate(() => {
+      // Locate the table with class 'snapshot-table2'
+      const table = document.querySelector("table.snapshot-table2");
+
+      if (!table) {
+        console.error("Table not found");
+        return null;
+      }
+
+      // Locate the row that contains the text 'RSI (14)'
+      const rows = Array.from(table.querySelectorAll("tbody tr"));
+
+      for (const row of rows) {
+        const cells = Array.from(row.querySelectorAll("td"));
+        for (const cell of cells) {
+          if (cell.innerText.includes("RSI (14)")) {
+            // Extract the value from the cell next to 'RSI (14)'
+            const rsiValueCell = cell.nextElementSibling;
+            return rsiValueCell ? rsiValueCell.innerText.trim() : null;
+          }
+        }
+      }
+
+      return null;
+    });
+
+    console.log("RSI (14) Value:", rsiValue);
+  } catch (error) {
+    console.error("Error scraping RSI (14) Value:", error);
+  } finally {
+    await page.close();
+  }
+};
+
 // Function to scrape DXY value from TradingView
 const scrapeDXY = async (browser) => {
   const page = await browser.newPage();
@@ -125,6 +167,9 @@ const scrape = async () => {
 
   // Scrape VIX Value
   await scrapeVIX(browser);
+
+  // Scrape RSI Value
+  await scrapeRSI(browser);
 
   // Scrape DXY Value
   await scrapeDXY(browser);
