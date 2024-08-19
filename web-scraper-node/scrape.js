@@ -1,46 +1,62 @@
-// import puppeteer from "puppeteer";
-
-// const scrape = async () => {
-//   const browser = await puppeteer.launch({ headless: false }); // Browser stays visible
-//   const page = await browser.newPage();
-
-//   const url = "https://www.tradingview.com/symbols/TVC-DXY/";
-
-//   await page.goto(url, { waitUntil: "domcontentloaded" });
-
-//   // Wait for the selector
-//   const content = await page.content();
-//   console.log(content);
-
-//   // Keep the browser open for 30 seconds so we can inspect it manually
-
-//   await browser.close();
-// };
-
-// scrape();
-
 import puppeteer from "puppeteer";
 
-const scrape = async () => {
-  const browser = await puppeteer.launch({ headless: false }); // Browser stays visible
+// Function to scrape DXY value from TradingView
+const scrapeDXY = async (browser) => {
   const page = await browser.newPage();
-
   const url = "https://www.tradingview.com/symbols/TVC-DXY/";
 
-  await page.goto(url, { waitUntil: "networkidle2" }); // Wait until the network is idle
+  try {
+    await page.goto(url, { waitUntil: "networkidle2" });
+    await page.waitForSelector(".last-JWoJqCpY.js-symbol-last");
 
-  // Wait for the specific element to be loaded in the DOM
-  await page.waitForSelector(".last-JWoJqCpY.js-symbol-last");
+    const dxyValue = await page.evaluate(() => {
+      const valueElement = document.querySelector(
+        ".last-JWoJqCpY.js-symbol-last"
+      );
+      return valueElement ? valueElement.textContent.trim() : null;
+    });
 
-  // Extract the value
-  const tradingviewDXYValue = await page.evaluate(() => {
-    const valueElement = document.querySelector(
-      ".last-JWoJqCpY.js-symbol-last"
-    );
-    return valueElement ? valueElement.textContent.trim() : null;
-  });
+    console.log("DXY Value:", dxyValue);
+  } catch (error) {
+    console.error("Error scraping DXY:", error);
+  } finally {
+    await page.close();
+  }
+};
 
-  console.log("DXY Value:", tradingviewDXYValue);
+// Function to scrape Fear and Greed Index from another source
+const scrapeFearAndGreedIndex = async (browser) => {
+  const page = await browser.newPage();
+  const url = "https://edition.cnn.com/markets/fear-and-greed"; // Replace with the actual URL
+
+  try {
+    await page.goto(url, { waitUntil: "networkidle2" });
+    await page.waitForSelector(".market-fng-gauge__dial-number-value"); // Updated selector
+
+    const fearAndGreedIndex = await page.evaluate(() => {
+      const indexElement = document.querySelector(
+        ".market-fng-gauge__dial-number-value" // Updated selector
+      );
+      return indexElement ? indexElement.textContent.trim() : null;
+    });
+
+    console.log("Fear and Greed Index:", fearAndGreedIndex);
+  } catch (error) {
+    console.error("Error scraping Fear and Greed Index:", error);
+  } finally {
+    await page.close();
+  }
+};
+
+// Main function to handle the scraping of both DXY and Fear and Greed Index
+const scrape = async () => {
+  const browser = await puppeteer.launch({ headless: false });
+
+  // Scrape DXY Value
+  await scrapeDXY(browser);
+
+  // Scrape Fear and Greed Index
+  await scrapeFearAndGreedIndex(browser);
 
   // Close the browser
   await browser.close();
