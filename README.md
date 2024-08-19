@@ -25,3 +25,5 @@ As a JS developer, i would like practice with puppeteer or cheerio.
 
 - <https://www.youtube.com/watch?v=jDT4u4BisrA>
 - <https://www.youtube.com/watch?v=MbqSMgMAzxU&ab_channel=Fireship>
+
+[Ultimate Guide To Web Scraping - Node.js & Python (Puppeteer & Beautiful Soup)](https://www.youtube.com/watch?v=XMu46BRPLqA)
