@@ -1,0 +1,195 @@
+# Stock Evaluator
+
+A Python-based stock evaluation engine that turns a simple **ticker list** into clear **trend, score, and buy/sell signals** using technical indicators like **RSI** and price trends.
+
+This project is designed as a foundation for a larger investing toolkit under **Oxinion Finance**, with future integration into **OMX notifications**.
+
+---
+
+## Philosophy
+
+The goal is not to predict prices, but to **evaluate opportunity**.
+
+> Cheap stocks should look weak, not strong.  
+> Strong scores should come from weakness, not hype.
+
+This evaluator follows a simple rule:
+
+- **Low RSI → Downtrend**
+- **Low RSI + Oversold Conditions → High Score**
+- **High Score → Buy Signal**
+
+---
+
+## Core Pipeline
+
+Ticker List
+↓
+Price Data (Historical)
+↓
+Indicator Calculation (RSI, Trend)
+↓
+Score Calculation
+↓
+Signal Generation (BUY / HOLD / SELL)
+
+---
+
+## Features
+
+### 1. Price Data Ingestion
+
+- Fetch historical price data for a list of tickers
+- Designed for weekly or daily resolution
+- Easily extendable to multiple data providers
+
+### 2. RSI Calculation
+
+- Standard 14-period RSI
+- Used to identify oversold and overbought conditions
+
+**RSI Interpretation**
+
+- RSI < 30 → Oversold
+- RSI 30–50 → Weak / Neutral
+- RSI > 70 → Overbought
+
+---
+
+### 3. Trend Detection
+
+Trend is determined using recent price direction:
+
+- Price below recent average → **Downtrend**
+- Price above recent average → **Uptrend**
+
+This mirrors logic similar to Google Sheets `SPARKLINE + GOOGLEFINANCE` trend visuals.
+
+---
+
+### 4. Scoring Logic
+
+Scores represent **opportunity**, not momentum.
+
+Example logic:
+
+- Lower RSI → Higher score
+- Downtrend + Oversold → Score boost
+- Overbought → Score penalty
+
+**Higher score = more attractive entry**
+
+---
+
+### 5. Signal Generation
+
+Signals are derived from score + trend + RSI:
+
+| Condition                        | Signal       |
+| -------------------------------- | ------------ |
+| Low RSI + Downtrend + High Score | BUY          |
+| Neutral RSI                      | HOLD         |
+| High RSI + Uptrend               | SELL / AVOID |
+
+---
+
+## Example Output
+
+```json
+{
+  "ticker": "COST",
+  "rsi": 28.4,
+  "trend": "DOWN",
+  "score": 82,
+  "signal": "BUY"
+}
+Project Structure (Planned)
+css
+Copy code
+stock-evaluator/
+├── data/
+│   └── price_loader.py
+├── indicators/
+│   ├── rsi.py
+│   └── trend.py
+├── scoring/
+│   └── score_engine.py
+├── signals/
+│   └── signal_engine.py
+├── main.py
+└── README.md
+Future Roadmap
+🔔 OMX Notification Pipeline (Planned)
+In the future, this evaluator will connect to OMX to:
+
+Trigger notifications when a stock turns BUY
+
+Send alerts via OMX workflows (email, push, webhook)
+
+Plug directly into geo-first automation pipelines
+
+Example:
+“RSI crossed below 30 → BUY signal → OMX sends notification”
+
+```
+
+## Score Logic
+
+The **score** represents how attractive a stock is for buying.  
+It combines **RSI (Relative Strength Index)** and **Trend** to determine opportunity.
+
+- **Higher score → more attractive for BUY**
+- **Low RSI + Downtrend → score boost (oversold condition)**
+- **High RSI + Uptrend → score penalty (overheated condition)**
+
+### Python Implementation
+
+```python
+def calculate_score(rsi, trend):
+    """
+    Calculate a stock score based on RSI and Trend.
+
+    Parameters:
+        rsi (float): Current RSI value
+        trend (str): 'UP', 'DOWN', or 'FLAT'
+
+    Returns:
+        int: Score between 0 and 100
+    """
+
+    score = 50  # Base score
+
+    # RSI-based adjustment
+    if rsi < 25:
+        score += 35
+    elif rsi < 30:
+        score += 25
+    elif rsi < 40:
+        score += 10
+    elif rsi > 70:
+        score -= 35
+    elif rsi > 60:
+        score -= 20
+
+    # Trend + RSI interaction
+    if trend == "DOWN" and rsi < 35:
+        score += 20   # Oversold + downtrend → attractive
+    elif trend == "UP" and rsi > 60:
+        score -= 20   # Expensive + uptrend → risky
+
+    # Ensure score is between 0 and 100
+    score = max(0, min(100, score))
+
+    return score
+Score Interpretation
+RSI Trend Score Effect Meaning
+<25 DOWN +35 +20 Very oversold → strong BUY
+25–30 DOWN +25 +20 Oversold → good BUY
+30–40 DOWN +10 +20 Slightly cheap → possible BUY
+60–70 UP -20 Expensive → caution / HOLD
+>70 UP -35 -20 Overheated → SELL
+
+Score combines cheapness (RSI) and trend context to generate actionable signals.
+
+
+```
