@@ -31,7 +31,7 @@ Indicator Calculation (RSI, Trend)
 ↓
 Score Calculation
 ↓
-Signal Generation (BUY / HOLD / SELL)
+Signal Generation (BUY / HOLD / SELL) with omx-sdk/notification integration (future)
 
 ---
 
@@ -193,3 +193,121 @@ Score combines cheapness (RSI) and trend context to generate actionable signals.
 
 
 ```
+
+## How to insert into Supabase
+
+1. Set up a table in Supabase to store stock evaluations:
+
+   ```sql
+   create table signals (
+   id uuid primary key default gen_random_uuid(),
+   index_name text,
+   ticker text,
+   price numeric,
+   rsi numeric,
+   trend text,
+   score int,
+   signal text,
+   created_at timestamptz default now(),
+   unique (index_name, ticker)
+   );
+   ```
+
+2. Set up environment variables and install dependencies:
+
+## Setup
+
+### Prerequisites
+
+- Python 3.7+
+- pip or conda for package management
+
+### Installation
+
+1. Clone this repository:
+
+   ```bash
+   git clone <your-repo-url>
+   cd stock-evaluator
+   ```
+
+2. Create and activate a virtual environment:
+
+   ```bash
+   # Create virtual environment
+   python -m venv venv
+
+   # Activate it (macOS/Linux)
+   source venv/bin/activate
+
+   # Activate it (Windows)
+   venv\Scripts\activate
+   ```
+
+3. Install required packages:
+
+   ```bash
+   pip install yfinance pandas ta
+
+   # Optional: For Supabase integration
+   pip install supabase python-dotenv
+
+   # update requirements.txt
+   pip freeze > requirements.txt
+   ```
+
+4. Run the script
+
+   python main.py
+
+5. **Optional Supabase Setup**:
+
+   Create a `.env` file in the project root with your Supabase credentials:
+
+   ```env
+   SUPABASE_URL=your_supabase_project_url
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   ```
+
+   **Note**: The application works perfectly without Supabase. If you don't set up these environment variables, the app will run normally and just skip the database integration.
+
+### Usage
+
+Run the stock evaluator:
+
+```bash
+python main.py
+```
+
+**With Supabase**: Results will be automatically saved to your Supabase `signals` table
+**Without Supabase**: Results will only be displayed in the console
+
+### Environment Variables
+
+| Variable                    | Required | Description                    |
+| --------------------------- | -------- | ------------------------------ |
+| `SUPABASE_URL`              | No       | Your Supabase project URL      |
+| `SUPABASE_SERVICE_ROLE_KEY` | No       | Your Supabase service role key |
+
+If either environment variable is missing, the application will run in local-only mode.
+
+## Database Schema
+
+If you want to use Supabase integration, create this table in your Supabase project:
+
+```sql
+create table signals (
+  id uuid primary key default gen_random_uuid(),
+  index_name text,
+  ticker text,
+  price numeric,
+  rsi numeric,
+  trend text,
+  score int,
+  signal text,
+  created_at timestamptz default now(),
+  unique (index_name, ticker)
+);
+```
+
+3. The application will automatically handle data insertion when environment variables are configured:

@@ -1,7 +1,22 @@
+import os
+from supabase import create_client
 import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
 from ta.momentum import RSIIndicator
+
+# -----------------------------
+# Supabase client (optional)
+# -----------------------------
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+supabase = None
+
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    print("[INFO] Supabase client initialized")
+else:
+    print("[INFO] Supabase not configured, running in local mode")
 
 # -----------------------------
 # Configuration
@@ -195,3 +210,34 @@ if __name__ == "__main__":
         for sig in ["STRONG BUY", "BUY", "HOLD", "SELL", "STRONG SELL"]:
             print(f"{sig:<15}: {counts.get(sig, 0)}")
         print("=" * 90)
+
+    # Save results to Supabase (if configured)
+    if supabase and all_results:
+        print("\n" + "=" * 50)
+        print("SAVING TO SUPABASE")
+        print("=" * 50)
+        
+        for df in all_results:
+            # Prepare data for Supabase
+            rows = df[[
+                "Index", "Ticker", "Price", "RSI", "Trend", "Score", "Signal"
+            ]].rename(columns={
+                "Index": "index_name",
+                "Ticker": "ticker",
+                "Price": "price",
+                "RSI": "rsi",
+                "Trend": "trend",
+                "Score": "score",
+                "Signal": "signal"
+            }).to_dict("records")
+
+            if rows:
+                try:
+                    res = supabase.table("signals").upsert(rows).execute()
+                    print(f"[INFO] Upserted {len(rows)} rows for {rows[0]['index_name']}")
+                except Exception as e:
+                    print(f"[ERROR] Error saving {rows[0]['index_name']}: {e}")
+        
+        print("=" * 50)
+    elif all_results:
+        print("\n[INFO] Results not saved to database (Supabase not configured)")
