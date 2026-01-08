@@ -297,17 +297,18 @@ If you want to use Supabase integration, create this table in your Supabase proj
 
 ```sql
 create table signals (
-  id uuid primary key default gen_random_uuid(),
-  index_name text,
-  ticker text,
-  price numeric,
-  rsi numeric,
-  trend text,
-  score int,
-  signal text,
-  created_at timestamptz default now(),
-  unique (index_name, ticker)
-);
+  id uuid not null default gen_random_uuid (),
+  index_names text null,
+  ticker text null,
+  price numeric null,
+  rsi numeric null,
+  trend text null,
+  score integer null,
+  signal text null,
+  created_at timestamp with time zone null default now(),
+  constraint signals_pkey primary key (id),
+  constraint signals_ticker_key unique (ticker)
+) TABLESPACE pg_default;
 ```
 
 3. The application will automatically handle data insertion when environment variables are configured:

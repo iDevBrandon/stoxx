@@ -179,6 +179,9 @@ if __name__ == "__main__":
         "CAGR": CAGR
     }
 
+    # Collect all results first, then consolidate
+    all_ticker_data = {}
+    
     for index_name, tickers in INDEX_GROUPS.items():
         print(f"\nAnalyzing {index_name} ({len(tickers)} stocks)...\n")
 
@@ -210,26 +213,35 @@ if __name__ == "__main__":
         for sig in ["STRONG BUY", "BUY", "HOLD", "SELL", "STRONG SELL"]:
             print(f"{sig:<15}: {counts.get(sig, 0)}")
         print("=" * 90)
+        
+        # Consolidate ticker data
+        for _, row in df.iterrows():
+            ticker = row['Ticker']
+            if ticker in all_ticker_data:
+                # Add index to existing ticker
+                existing_indexes = all_ticker_data[ticker]['index_names'].split(',')
+                if index_name not in existing_indexes:
+                    all_ticker_data[ticker]['index_names'] = ','.join(existing_indexes + [index_name])
+            else:
+                # New ticker
+                all_ticker_data[ticker] = {
+                    'ticker': ticker,
+                    'index_names': index_name,
+                    'price': float(row['Price']),
+                    'rsi': float(row['RSI']),
+                    'trend': row['Trend'],
+                    'score': int(row['Score']),
+                    'signal': row['Signal']
+                }
 
-        # Save this index to Supabase immediately
-        if supabase:
-            rows = df[[
-                "Index", "Ticker", "Price", "RSI", "Trend", "Score", "Signal"
-            ]].rename(columns={
-                "Index": "index_name",
-                "Ticker": "ticker",
-                "Price": "price",
-                "RSI": "rsi",
-                "Trend": "trend",
-                "Score": "score",
-                "Signal": "signal"
-            }).to_dict("records")
-
-            for row in rows:
-                try:
-                    supabase.table("signals").upsert(row, on_conflict="index_name,ticker").execute()
-                    print(f"[INFO] Upserted {row['ticker']} ({row['index_name']})")
-                except Exception as e:
-                    print(f"[ERROR] Error saving {row['ticker']} ({row['index_name']}): {e}")
-        else:
-            print(f"[INFO] Supabase not configured. {index_name} results not saved.")
+    # Save consolidated results to Supabase
+    if supabase and all_ticker_data:
+        print(f"\nSaving {len(all_ticker_data)} consolidated ticker records...")
+        for ticker, data in all_ticker_data.items():
+            try:
+                supabase.table("signals").upsert(data, on_conflict="ticker").execute()
+                print(f"[INFO] Upserted {ticker} ({data['index_names']})")
+            except Exception as e:
+                print(f"[ERROR] Error saving {ticker}: {e}")
+    elif all_ticker_data:
+        print(f"\n[INFO] Supabase not configured. {len(all_ticker_data)} records not saved.")
