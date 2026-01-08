@@ -222,6 +222,15 @@ if __name__ == "__main__":
                 existing_indexes = all_ticker_data[ticker]['index_names'].split(',')
                 if index_name not in existing_indexes:
                     all_ticker_data[ticker]['index_names'] = ','.join(existing_indexes + [index_name])
+                # Always update the timestamp and data
+                all_ticker_data[ticker].update({
+                    'price': float(row['Price']),
+                    'rsi': float(row['RSI']),
+                    'trend': row['Trend'],
+                    'score': int(row['Score']),
+                    'signal': row['Signal'],
+                    'updated_at': datetime.now().isoformat()
+                })
             else:
                 # New ticker
                 all_ticker_data[ticker] = {
@@ -231,7 +240,8 @@ if __name__ == "__main__":
                     'rsi': float(row['RSI']),
                     'trend': row['Trend'],
                     'score': int(row['Score']),
-                    'signal': row['Signal']
+                    'signal': row['Signal'],
+                    'updated_at': datetime.now().isoformat()
                 }
 
     # Save consolidated results to Supabase
