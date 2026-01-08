@@ -166,7 +166,7 @@ def evaluate_stock(ticker):
     }
 
 # -----------------------------
-# Main Execution
+# Main Execution (Push one by one)
 # -----------------------------
 if __name__ == "__main__":
 
@@ -179,8 +179,6 @@ if __name__ == "__main__":
         "CAGR": CAGR
     }
 
-    all_results = []
-
     for index_name, tickers in INDEX_GROUPS.items():
         print(f"\nAnalyzing {index_name} ({len(tickers)} stocks)...\n")
 
@@ -192,10 +190,9 @@ if __name__ == "__main__":
             continue
 
         df["Index"] = index_name
-        all_results.append(df)
-
         df_sorted = df.sort_values(by="Score", ascending=False)
 
+        # Print Table
         print("=" * 90)
         print(f"{'Index':<6} {'Ticker':<10} {'Price':<10} {'RSI':<8} {'Trend':<6} {'Score':<8} {'Signal':<15}")
         print("-" * 90)
@@ -207,21 +204,15 @@ if __name__ == "__main__":
                 f"{row['Trend']:<6} {row['Score']:<8} {row['Signal']:<15}"
             )
 
-        # Index별 Summary
+        # Index Summary
         print("\n--- SUMMARY ---")
         counts = df['Signal'].value_counts()
         for sig in ["STRONG BUY", "BUY", "HOLD", "SELL", "STRONG SELL"]:
             print(f"{sig:<15}: {counts.get(sig, 0)}")
         print("=" * 90)
 
-    # Save results to Supabase (if configured)
-    if supabase and all_results:
-        print("\n" + "=" * 50)
-        print("SAVING TO SUPABASE")
-        print("=" * 50)
-        
-        for df in all_results:
-            # Prepare data for Supabase
+        # Save this index to Supabase immediately
+        if supabase:
             rows = df[[
                 "Index", "Ticker", "Price", "RSI", "Trend", "Score", "Signal"
             ]].rename(columns={
@@ -234,13 +225,11 @@ if __name__ == "__main__":
                 "Signal": "signal"
             }).to_dict("records")
 
-            if rows:
+            for row in rows:
                 try:
-                    res = supabase.table("signals").upsert(rows).execute()
-                    print(f"[INFO] Upserted {len(rows)} rows for {rows[0]['index_name']}")
+                    supabase.table("signals").upsert(row).execute()
+                    print(f"[INFO] Upserted {row['ticker']} ({row['index_name']})")
                 except Exception as e:
-                    print(f"[ERROR] Error saving {rows[0]['index_name']}: {e}")
-        
-        print("=" * 50)
-    elif all_results:
-        print("\n[INFO] Results not saved to database (Supabase not configured)")
+                    print(f"[ERROR] Error saving {row['ticker']} ({row['index_name']}): {e}")
+        else:
+            print(f"[INFO] Supabase not configured. {index_name} results not saved.")
