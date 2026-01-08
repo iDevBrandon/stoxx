@@ -1,9 +1,12 @@
 import os
+from dotenv import load_dotenv
 from supabase import create_client
 import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
 from ta.momentum import RSIIndicator
+
+load_dotenv()
 
 # -----------------------------
 # Supabase client (optional)
