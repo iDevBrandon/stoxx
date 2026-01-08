@@ -171,12 +171,12 @@ def evaluate_stock(ticker):
 if __name__ == "__main__":
 
     INDEX_GROUPS = {
-        # "QQQ": QQQ,
+        "QQQ": QQQ,
         "DIV": DIV,
-        # "VIG": VIG,
-        # "VIGI": VIGI,
-        # "VXUS": VXUS,
-        # "CAGR": CAGR
+        "VIG": VIG,
+        "VIGI": VIGI,
+        "VXUS": VXUS,
+        "CAGR": CAGR
     }
 
     for index_name, tickers in INDEX_GROUPS.items():
