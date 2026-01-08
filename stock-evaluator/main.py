@@ -171,12 +171,12 @@ def evaluate_stock(ticker):
 if __name__ == "__main__":
 
     INDEX_GROUPS = {
-        "QQQ": QQQ,
+        # "QQQ": QQQ,
         "DIV": DIV,
-        "VIG": VIG,
-        "VIGI": VIGI,
-        "VXUS": VXUS,
-        "CAGR": CAGR
+        # "VIG": VIG,
+        # "VIGI": VIGI,
+        # "VXUS": VXUS,
+        # "CAGR": CAGR
     }
 
     for index_name, tickers in INDEX_GROUPS.items():
@@ -227,7 +227,7 @@ if __name__ == "__main__":
 
             for row in rows:
                 try:
-                    supabase.table("signals").upsert(row).execute()
+                    supabase.table("signals").upsert(row, on_conflict="index_name,ticker").execute()
                     print(f"[INFO] Upserted {row['ticker']} ({row['index_name']})")
                 except Exception as e:
                     print(f"[ERROR] Error saving {row['ticker']} ({row['index_name']}): {e}")
