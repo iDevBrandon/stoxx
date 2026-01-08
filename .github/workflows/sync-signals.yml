@@ -1,0 +1,45 @@
+# .github/workflows/sync-signals.yml
+name: Sync Signals to Supabase
+
+on:
+  schedule:
+    - cron: '0 14 * * 1-5'  # Weekdays 10am ET (14 UTC), market hours only
+  workflow_dispatch:         # Manual execution
+
+jobs:
+  run-sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('stock-evaluator/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r stock-evaluator/requirements.txt
+
+      - name: Run Stock Evaluator
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          cd stock-evaluator
+          python main.py
+
+      - name: Check for failures
+        if: failure()
+        run: echo "Stock evaluation failed - check logs"
