@@ -38,7 +38,6 @@ QQQ = [
   "ZS"
 ]
 
-DIV = ["V","APH","KLAC","INTU","PH","CTAS","ZTS","MPWR", "MSCI", "FIX", "DPZ"]
 
 VIG = [
     "AVGO","MSFT","AAPL","JPM","LLY","V","XOM","JNJ","WMT","MA","COST","ABBV",
@@ -53,7 +52,7 @@ VIG = [
     "PAYX","FIX","STT","XYL","TSCO","MCHP","FITB","KR","AEE","DTE","HSY",
     "ATO","RJF","CBOE","BR","STE","CINF","DOV","AWK","VLTO","HPQ","BRO","WRB",
     "STLD","HUBB","WSM","CMS","PPG","DGX","CASY","CHD","NI","EXPD","WST",
-    "HEI.A","CDW","CHRW","RBA","GPC","LNT","SNA","PNR","PFG","MKC","TPL","TSN",
+    "HEI/A","CDW","CHRW","RBA","GPC","LNT","SNA","PNR","PFG","MKC","TPL","TSN",
     "RGLD","LII","ALB","FNF","RS","ITT","ALLE","MAS","DKS","CSL","RPM","GGG",
     "AVY","JBHT","CLX","LECO","DPZ","IEX","RNR","NDSN","HEI","JKHY","RGA","EVR",
     "HII","UNM","WSO","DTM","AIZ","SCI","WTRG","GL","WMS","ENSG","ORI","DCI",
@@ -68,23 +67,19 @@ VIG = [
     "TOWN","BANF","HI","WLK","CSGS","NBTB","FRME","EFSC","DDS","HNI","KWR",
     "POWI","HMN","IOSP","NNI","SYBT","CHCO","CNS","ANDE","WOR","ALG","LMAT",
     "NHC","AGM","TCBK","WLY","HTO","LKFN","JJSF","TNC","NSP","LNN","WABC",
-    "GABC","SRCE","BF.A","BFC","WS","SCL","GRC","MSEX","UTL","FMBH","APOG",
+    "GABC","SRCE","BF/A","BFC","WS","SCL","GRC","MSEX","UTL","FMBH","APOG",
     "AMSF","TR","MBWM","IBCP","RBCAA","FCBC","ODC","NRIM","SMBC","CASS",
     "YORW","FBIZ","HY","UNTY","SCVL"
 ]
 
 
-VIGI = [
-    "RY", "NVS", "RHHBY", "MUFG", "NSRGY", "SONY", "SAP", "HTHIY", "SBGSY", "SMFG", 
-    "AAIGF", "SNY", "BN", "NVO", "MSBHF", "RELX", "TKOMF", "BAESY", "INFY", 
-    "LDNXF", "CNI", "DEO", "DBOEY"
-]
 
 
-VXUS = ['TSM', 'TCEHY', 'BABA', "HSBC", "SHEL", "TM"]
+VXUS = ['TSM', 'TCEHY', 'ASML', 'BABA', "AZN", "NSRGY", "SAP", "HSBC", "NVS", "RY", "SHEL", "TM", "SIEGY", "SHOP", "LVMUY", "SONY", "MUFG", "CMWAY", "ALIZY", "SAN", "NVO", "SBGSY", "UL", "TD", "IBDRY", "HTHIY", "EADSY", "HDB", "UBS", "BBVA", "TTE", "RYCEY", "BTI", "SAFRY", "UNCRY", "ABBNY", "CFRUY", "SMFG", "AAIGF","SNY", "ENB", "DTEGY", "SFTBY", "ESLOY",   "RHHBY", "BN",  "MSBHF", "RELX", "TKOMF", "BAESY", "INFY", "LDNXF", "CNI", "DEO", "DBOEY" 'RACE', 'HESAY']
 
 
-CAGR = ['SMT.L', 'RACE', 'LVMUY', 'HESAY', 'NET', 'VRSN']
+CAGR = ['SMT.L', 'NET', "V","APH","KLAC","INTU","PH","CTAS","ZTS","MPWR", "MSCI", "FIX", "DPZ", "FICO", "NTDOY", "VRSN"]
+
 
 RSI_WINDOW = 14
 LOOKBACK_DAYS_CALENDAR = 90
@@ -172,9 +167,7 @@ if __name__ == "__main__":
 
     INDEX_GROUPS = {
         "QQQ": QQQ,
-        "DIV": DIV,
         "VIG": VIG,
-        "VIGI": VIGI,
         "VXUS": VXUS,
         "CAGR": CAGR
     }
