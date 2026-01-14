@@ -52,14 +52,14 @@ VIG = [
     "PAYX","FIX","STT","XYL","TSCO","MCHP","FITB","KR","AEE","DTE","HSY",
     "ATO","RJF","CBOE","BR","STE","CINF","DOV","AWK","VLTO","HPQ","BRO","WRB",
     "STLD","HUBB","WSM","CMS","PPG","DGX","CASY","CHD","NI","EXPD","WST",
-    "HEI/A","CDW","CHRW","RBA","GPC","LNT","SNA","PNR","PFG","MKC","TPL","TSN",
+    "HEI-A","CDW","CHRW","RBA","GPC","LNT","SNA","PNR","PFG","MKC","TPL","TSN",
     "RGLD","LII","ALB","FNF","RS","ITT","ALLE","MAS","DKS","CSL","RPM","GGG",
-    "AVY","JBHT","CLX","LECO","DPZ","IEX","RNR","NDSN","HEI","JKHY","RGA","EVR",
+    "AVY","JBHT","CLX","LECO","DPZ","IEX","RNR","NDSN","HEI-A","JKHY","RGA","EVR",
     "HII","UNM","WSO","DTM","AIZ","SCI","WTRG","GL","WMS","ENSG","ORI","DCI",
     "FDS","BAH","AIT","AFG","OC","TTEK","SSB","WTFC","DOX","PRI","ATR","OSK",
     "LAD","POOL","CFR","UMBF","ZION","SEIC","AOS","SOLS","WTS","NFG","ERIE",
     "CADE","CHDN","EMN","R","IDA","TTC","INGR","SSD","AL","CBSH","FAF","THG",
-    "AGCO","PB","CHE","LFUS","MKTX","MSA","GATX","RLI","THO","BF.B","TXNM",
+    "AGCO","PB","CHE","LFUS","MKTX","MSA","GATX","RLI","THO","BF-B","TXNM",
     "UFPI","BMI","MORN","TKR","HOMB","BCPC","OZK","SIGI","BC","DLB","FFIN",
     "AGO","CNO","AVT","MWA","GHC","UCB","EXPO","FELE","INDB","IBOC","SFBS",
     "SLGN","MATX","OTTR","BRC","MZTI","CBT","KAI","CPK","FUL","MGEE","SXI",
@@ -67,7 +67,7 @@ VIG = [
     "TOWN","BANF","HI","WLK","CSGS","NBTB","FRME","EFSC","DDS","HNI","KWR",
     "POWI","HMN","IOSP","NNI","SYBT","CHCO","CNS","ANDE","WOR","ALG","LMAT",
     "NHC","AGM","TCBK","WLY","HTO","LKFN","JJSF","TNC","NSP","LNN","WABC",
-    "GABC","SRCE","BF/A","BFC","WS","SCL","GRC","MSEX","UTL","FMBH","APOG",
+    "GABC","SRCE","BF-A","BFC","WS","SCL","GRC","MSEX","UTL","FMBH","APOG",
     "AMSF","TR","MBWM","IBCP","RBCAA","FCBC","ODC","NRIM","SMBC","CASS",
     "YORW","FBIZ","HY","UNTY","SCVL"
 ]
@@ -81,6 +81,53 @@ VXUS = [
 ]
 
 CAGR = ['SMT.L', 'NET', "V","APH","KLAC","INTU","PH","CTAS","ZTS","MPWR", "MSCI", "FIX", "DPZ", "FICO", "NTDOY", "VRSN" , "LMP.L"]
+
+GURU = [
+    "FLUT", "ALC", "MSFT", "V", "INTU", "GE", "AMZN", "MCO", "MMC", "ICE",
+    "GTLS", "APTV", "WFRD", "AXTA", "OSK", "ASH", "GPK", "NOMD", "PVH", "DOLE",
+    "TDG", "MA", "HLT", "GOOGL", "FICO", "BRK-B", "WM", "CNI", "CAT", "DE",
+    "ECL", "WMT", "FDX", "KOF", "UBER", "BN", "HHH", "GOOG", "QSR", "CMG",
+    "SEG", "NBR", "LNC", "GTN", "QUAD", "BFH", "TDAY", "CNDT", "AXL", "JELD",
+    "JXN", "IQV", "WBD", "PSX", "FCNCA", "LAD", "ABNB", "CRM", "EFX", "SCHW",
+    "JOE", "EPD", "OZK", "WRB", "OXY", "ET", "BRK-A", "AAPL", "FANG", "IBKR",
+    "GIL", "NRP", "GWRE", "LEN", "SGU", "IEP", "CVI", "SWX", "UAN", "SATS",
+    "IFF", "CTRI", "JBLU", "AEP", "CZR", "JNJ", "REZI", "BOKF", "AMG", "SNA",
+    "PHIN", "BAC", "B", "MHK", "APA", "SE", "NVDA", "META", "TTWO", "APP",
+    "TSM", "RDDT", "SPGI", "CP", "FER", "DG", "KGC", "NEM", "OLN", "DLTR",
+    "FIVE", "DECK", "VLO", "COF", "AMAT", "USB", "CVS", "MGM", "MKL", "VTRS",
+    "KKR", "ORLY", "CSGP", "ROP", "CVNA", "HGV", "CDLX", "SWIM", "PCG", "NSC",
+    "FLUT", "CASY", "LOAR", "ABG", "SGI", "CPNG", "WTW", "UHAL-B", "GRBK",
+    "FLR", "CNR", "BHF", "KD", "PENN", "DHT", "TEVA", "JPM", "MS", "PNC",
+    "QCOM", "MDT", "BKNG", "TSCO", "MSI", "BABA", "WHR", "KWEB", "NRG", "VST",
+    "FOUR", "OKTA", "PCOR", "MNDY", "BRZE", "NCNO", "BLND", "VERX", "RTX",
+    "JCI", "FISV", "MET", "BK", "PDD", "DIS", "ASML", "ORCL", "WPM", "BDX",
+    "IMO", "HCA", "CHRW", "FN", "IDCC", "SNX", "RLI", "UGI", "SFBS", "REVG",
+    "ARW", "SIRI", "SYF", "STLA", "ALLY", "C", "HEI-A", "AME", "MEDP", "PGR",
+    "IBP", "ELV", "OMF", "SLM", "AN", "RYAAY", "MPLX", "BLDR", "FNF", "VFC",
+    "YETI", "GXO", "EVH", "CGNX", "FRPT", "PTLO", "BL", "BRCC", "GM", "TOL",
+    "PHM", "DHI", "AVTR", "BAX", "LEA", "GPI", "EQH", "RMNI", "SDHC", "AXP",
+    "RACE", "MU", "DJCO", "CTRA", "HOLX", "AKAM", "DD", "NUE", "WST", "GSK",
+    "HSY", "BMY", "BIIB", "TRMD", "EXE", "GTX", "AU", "VNOM", "TDS", "TLN",
+    "STKL", "CORZ", "SYK", "LLY", "ABT", "PGR", "FERG", "BSX", "CRH", "APH",
+    "GNRC", "SPHR", "MSGE", "NCLH", "CRL", "LH", "IPG-OLD", "KN", "MAT", "CG",
+    "TSLA", "TRUP", "BUR", "BAYRY", "FLG", "OGN", "BP", "MRK", "SEB", "IDT",
+    "NU", "UNP", "PM", "NTRA", "COOP-OLD", "VRT", "MP", "MIR", "APO", "FIHL",
+    "RRX", "EWBC", "SOC", "TKO", "TMO", "MDLZ", "PEP", "PYPL", "EBAY", "JPM",
+    "UNH", "GGG", "TTC", "CNX", "KHC", "IAC", "EXXRF", "ACI", "RYN", "REGN",
+    "PENG", "TCBI", "AXS", "EVRG", "BEPC", "NVST", "CACI", "MOH", "LULU",
+    "HCC", "AMR", "RIG", "VAL", "NE", "JHG", "SOLV", "IVZ", "WEN", "GEHC",
+    "SGOV", "CROX", "DHR", "AER", "AZO", "RPRX", "ENOV", "SHOP", "AVGO",
+    "ORLA", "CLF", "BB", "KW", "ATS", "TAP", "VOO", "HUM", "FMS", "WFC", "MGA",
+    "DG", "VNT", "ST", "LKQ", "ABM", "OMC", "SLB", "CACC", "WIX", "HTHT",
+    "YUMC", "RYCEF", "FWONK", "UMGNF", "CNSWF", "ERFSF", "QXO", "DB", "EFA",
+    "SW", "WTW", "WCC", "LBTYK", "LPLA", "ADI", "TEL", "CMCSA", "JDEPY",
+    "HKHHF", "PROSF", "ADP", "WAT", "MAR", "TDW", "FPH", "CBRE", "BCC",
+    "LEN-B", "PLD", "ROG", "SAFRF", "RHHVF", "TTE", "IONS", "BYNN.F", "NSRGY",
+    "UOVEY", "PUKPF", "MSCI", "RBLX", "RKT", "MDB", "LLYVK", "NSIT", "MCD",
+    "FTV", "APD", "AON", "TMO", "IEX", "CB", "KO", "BLK", "CNQ", "FOX", "PG",
+    "NWSA"
+]
+
 
 
 RSI_WINDOW = 14
@@ -171,7 +218,8 @@ if __name__ == "__main__":
         "QQQ": QQQ,
         "VIG": VIG,
         "VXUS": VXUS,
-        "CAGR": CAGR
+        "CAGR": CAGR,
+        "GURU": GURU
     }
 
     # Collect all results first, then consolidate
