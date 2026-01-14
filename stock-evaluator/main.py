@@ -24,6 +24,9 @@ else:
 # -----------------------------
 # Configuration
 # -----------------------------
+
+OXNO = ["INTU" , "NVO", "COST", "MSCI" , "HESAY", "LMP.L"]
+
 QQQ = [
   "ADBE","AMD","ABNB","ALNY","GOOGL","GOOG","AMZN","AEP","AMGN","ADI",
   "AAPL","AMAT","APP","ARM","ASML","AZN","TEAM","ADSK","ADP","AXON",
@@ -80,7 +83,7 @@ VXUS = [
     "NVS", "RY","SHEL", "TM", "SIEGY", "SHOP", "LVMUY", "SONY", "MUFG", "CMWAY", "ALIZY","SAN", "NVO", "SBGSY", "UL", "TD", "IBDRY", "HTHIY", "EADSY", "HDB", "UBS","BBVA", "TTE", "RYCEY", "BTI", "SAFRY", "UNCRY", "ABBNY", "CFRUY", "SMFG","AAIGF", "SNY", "ENB", "DTEGY", "SFTBY", "ESLOY",  "BN", "MSBHF","RELX", "TKOMF", "BAESY", "INFY", "LDNXF", "CNI", "DEO", "DBOEY",'RACE', 'HESAY', "FJTSY", "WCN", "DSDVY", "ATD.TO", "FNV", "DOL.TO", "ASAZY", "IFC.TO", "GVDNY", "UCBJY", "SVNDY", "TTDKY", "SXYAY", "SDZNY", "NTTYY", "SMPNY", "AHT.L",  
 ]
 
-CAGR = ['SMT.L', 'NET', "V","APH","KLAC","INTU","PH","CTAS","ZTS","MPWR", "MSCI", "FIX", "DPZ", "FICO", "NTDOY", "VRSN" , "LMP.L"]
+CAGR = ['SMT.L', 'NET', "V","APH","KLAC","INTU","PH","CTAS","ZTS","MPWR", "MSCI", "FIX", "DPZ", "FICO", "NTDOY", "VRSN"]
 
 GURU = [
     "FLUT", "ALC", "MSFT", "V", "INTU", "GE", "AMZN", "MCO", "MMC", "ICE",
@@ -219,7 +222,8 @@ if __name__ == "__main__":
         "VIG": VIG,
         "VXUS": VXUS,
         "CAGR": CAGR,
-        "GURU": GURU
+        "GURU": GURU,
+        "OXNO": OXNO
     }
 
     # Collect all results first, then consolidate
