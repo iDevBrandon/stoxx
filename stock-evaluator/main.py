@@ -78,7 +78,7 @@ VIG = [
 VXUS = ['TSM', 'TCEHY', 'ASML', 'BABA', "AZN", "NSRGY", "SAP", "HSBC", "NVS", "RY", "SHEL", "TM", "SIEGY", "SHOP", "LVMUY", "SONY", "MUFG", "CMWAY", "ALIZY", "SAN", "NVO", "SBGSY", "UL", "TD", "IBDRY", "HTHIY", "EADSY", "HDB", "UBS", "BBVA", "TTE", "RYCEY", "BTI", "SAFRY", "UNCRY", "ABBNY", "CFRUY", "SMFG", "AAIGF","SNY", "ENB", "DTEGY", "SFTBY", "ESLOY",   "RHHBY", "BN",  "MSBHF", "RELX", "TKOMF", "BAESY", "INFY", "LDNXF", "CNI", "DEO", "DBOEY" 'RACE', 'HESAY']
 
 
-CAGR = ['SMT.L', 'NET', "V","APH","KLAC","INTU","PH","CTAS","ZTS","MPWR", "MSCI", "FIX", "DPZ", "FICO", "NTDOY", "VRSN"]
+CAGR = ['SMT.L', 'NET', "V","APH","KLAC","INTU","PH","CTAS","ZTS","MPWR", "MSCI", "FIX", "DPZ", "FICO", "NTDOY", "VRSN" , "LMP.L"]
 
 
 RSI_WINDOW = 14
