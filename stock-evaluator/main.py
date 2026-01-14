@@ -77,7 +77,7 @@ VIG = [
 
 VXUS = [
     'TSM', 'TCEHY', 'ASML', 'BABA', "AZN","RHHBY", "NSRGY", "SAP", "HSBC",
-    "NVS", "RY","SHEL", "TM", "SIEGY", "SHOP", "LVMUY", "SONY", "MUFG", "CMWAY", "ALIZY","SAN", "NVO", "SBGSY", "UL", "TD", "IBDRY", "HTHIY", "EADSY", "HDB", "UBS","BBVA", "TTE", "RYCEY", "BTI", "SAFRY", "UNCRY", "ABBNY", "CFRUY", "SMFG","AAIGF", "SNY", "ENB", "DTEGY", "SFTBY", "ESLOY",  "BN", "MSBHF","RELX", "TKOMF", "BAESY", "INFY", "LDNXF", "CNI", "DEO", "DBOEY",'RACE', 'HESAY'
+    "NVS", "RY","SHEL", "TM", "SIEGY", "SHOP", "LVMUY", "SONY", "MUFG", "CMWAY", "ALIZY","SAN", "NVO", "SBGSY", "UL", "TD", "IBDRY", "HTHIY", "EADSY", "HDB", "UBS","BBVA", "TTE", "RYCEY", "BTI", "SAFRY", "UNCRY", "ABBNY", "CFRUY", "SMFG","AAIGF", "SNY", "ENB", "DTEGY", "SFTBY", "ESLOY",  "BN", "MSBHF","RELX", "TKOMF", "BAESY", "INFY", "LDNXF", "CNI", "DEO", "DBOEY",'RACE', 'HESAY', "FJTSY", "WCN", "DSDVY", "ATD.TO", "FNV", "DOL.TO", "ASAZY", "IFC.TO", "GVDNY", "UCBJY", "SVNDY", "TTDKY", "SXYAY", "SDZNY", "NTTYY", "SMPNY", "AHT.L",  
 ]
 
 CAGR = ['SMT.L', 'NET', "V","APH","KLAC","INTU","PH","CTAS","ZTS","MPWR", "MSCI", "FIX", "DPZ", "FICO", "NTDOY", "VRSN" , "LMP.L"]
