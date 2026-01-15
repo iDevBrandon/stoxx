@@ -131,6 +131,14 @@ GURU = [
     "NWSA"
 ]
 
+ALT = [
+  "USDU","FXE","FXF","FXY","FXB","FXC","FXA",    
+  "VXX",                                         
+  "PDBC","GLD",                                  
+  "BITO",                                        
+  "REET","IGF"                                  
+];
+
 
 
 RSI_WINDOW = 14
@@ -223,7 +231,8 @@ if __name__ == "__main__":
         "VXUS": VXUS,
         "CAGR": CAGR,
         "GURU": GURU,
-        "OXNO": OXNO
+        "OXNO": OXNO,
+        "ALT": ALT
     }
 
     # Collect all results first, then consolidate
