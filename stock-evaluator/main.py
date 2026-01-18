@@ -25,7 +25,7 @@ else:
 # Configuration
 # -----------------------------
 
-OXNO = ["INTU" , "NVO", "COST", "MSCI" , "HESAY", "LMP.L" ,"CTAS","ZTS", "V", "KLAC", "APH", "PH","FIX", "DPZ"]
+OXNO = ["INTU", "MSCI" , "CTAS", "NVO",  "HESAY", "LMP.L" ,"ZTS", "V", "KLAC", "APH", "PH","FIX", "DPZ"]
 
 CAGR = ['SMT.L', 'NET', "FICO", "NTDOY", "VRSN"]
 
