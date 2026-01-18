@@ -25,7 +25,10 @@ else:
 # Configuration
 # -----------------------------
 
-OXNO = ["INTU" , "NVO", "COST", "MSCI" , "HESAY", "LMP.L"]
+OXNO = ["INTU" , "NVO", "COST", "MSCI" , "HESAY", "LMP.L" ,"CTAS","ZTS", "V", "KLAC", "APH", "PH","FIX", "DPZ"]
+
+CAGR = ['SMT.L', 'NET', "FICO", "NTDOY", "VRSN"]
+
 
 QQQ = [
   "ADBE","AMD","ABNB","ALNY","GOOGL","GOOG","AMZN","AEP","AMGN","ADI",
@@ -83,7 +86,6 @@ VXUS = [
     "NVS", "RY","SHEL", "TM", "SIEGY", "SHOP", "LVMUY", "SONY", "MUFG", "CMWAY", "ALIZY","SAN", "NVO", "SBGSY", "UL", "TD", "IBDRY", "HTHIY", "EADSY", "HDB", "UBS","BBVA", "TTE", "RYCEY", "BTI", "SAFRY", "UNCRY", "ABBNY", "CFRUY", "SMFG","AAIGF", "SNY", "ENB", "DTEGY", "SFTBY", "ESLOY",  "BN", "MSBHF","RELX", "TKOMF", "BAESY", "INFY", "LDNXF", "CNI", "DEO", "DBOEY",'RACE', 'HESAY', "FJTSY", "WCN", "DSDVY", "ATD.TO", "FNV", "DOL.TO", "ASAZY", "IFC.TO", "GVDNY", "UCBJY", "SVNDY", "TTDKY", "SXYAY", "SDZNY", "NTTYY", "SMPNY", "AHT.L",  
 ]
 
-CAGR = ['SMT.L', 'NET', "V","APH","KLAC","INTU","PH","CTAS","ZTS","MPWR", "MSCI", "FIX", "DPZ", "FICO", "NTDOY", "VRSN"]
 
 GURU = [
     "FLUT", "ALC", "MSFT", "V", "INTU", "GE", "AMZN", "MCO", "MMC", "ICE",
@@ -137,7 +139,7 @@ ALT = [
   "PDBC","GLD",                                  
   "BITO",                                        
   "REET","IGF"                                  
-];
+]
 
 
 
