@@ -27,7 +27,7 @@ else:
 
 OXNO = ["INTU", "MSCI" , "CTAS", "NVO",  "HESAY", "LMP.L" ,"ZTS", "V", "KLAC", "APH", "PH","FIX", "DPZ"]
 
-CAGR = ['SMT.L', 'NET', "FICO", "NTDOY", "VRSN"]
+CAGR = ['SMT.L', 'NET', "FICO", "NTDOY", "VRSN", "SE", "SOFI", "SPOT"]
 
 
 QQQ = [
