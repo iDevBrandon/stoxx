@@ -234,7 +234,7 @@ if __name__ == "__main__":
         "CAGR": CAGR,
         "GURU": GURU,
         "OXNO": OXNO,
-        "ALT": ALT
+        # "ALT": ALT
     }
 
     # Collect all results first, then consolidate
