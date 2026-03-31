@@ -1,13 +1,13 @@
+# .github/workflows/sync-indicators.yml
 name: Sync Indicators to Supabase
 
 on:
   schedule:
-    - cron: '0 14 * * 1-5'  # Weekdays 10am ET (14 UTC), market hours only
-    - cron: '30 20 * * 1-5' # Weekdays 4:30pm ET (20:30 UTC), after market close
-  workflow_dispatch:        # Manual execution
+    - cron: '30 14,19 * * 1-5'  # 1 hour after market open (10:30 AM ET) and 1 hour before close (3:00 PM ET)
+  workflow_dispatch:             # Manual execution
 
 jobs:
-  fetch-and-sync-indicators:
+  run-indicators-sync:
     runs-on: ubuntu-latest
     
     steps:
@@ -23,27 +23,40 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('indices/requirements.txt') }}
+          key: ${{ runner.os }}-pip-indicators-${{ hashFiles('stoxx/indices/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-pip-indicators-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r indices/requirements.txt
-          pip install supabase
-          playwright install chromium
+          cd stoxx/indices
+          pip install -r requirements.txt
 
-      - name: Fetch Indicators and Upload to Supabase
+      - name: Fetch All Indicators
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          cd indices
-          python fetch_all_indicators.py --sequential
-          python upload_indicators.py
+          cd stoxx/indices
+          python fetch_all_indicators.py --output ../../fetch_indicators_summary.json
+
+      - name: Insert Indicators to Database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          cd stoxx/indices
+          python insert_indicators.py --input ../../fetch_indicators_summary.json
+
+      - name: Upload Summary Artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: indicators-sync-summary
+          path: fetch_indicators_summary.json
+          retention-days: 7
 
       - name: Check for failures
         if: failure()
-        run: echo "Indicator fetching and synchronization failed - check logs"
+        run: echo "Indicators sync failed - check logs and artifacts"

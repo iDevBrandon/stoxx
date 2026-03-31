@@ -1,4 +1,4 @@
 requests==2.32.4
 beautifulsoup4==4.13.4
 python-dotenv==1.1.1
-supabase==2.18.1supabase
+supabase==2.18.1
