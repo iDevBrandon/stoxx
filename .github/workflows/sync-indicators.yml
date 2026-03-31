@@ -23,14 +23,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-indicators-${{ hashFiles('stoxx/indices/requirements.txt') }}
+          key: ${{ runner.os }}-pip-indicators-${{ hashFiles('indices/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-indicators-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r stoxx/indices/requirements.txt
+          pip install -r indices/requirements.txt
 
       - name: Fetch All Indicators
         env:
