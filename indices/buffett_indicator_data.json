@@ -18,5 +18,71 @@
     "url": "https://www.currentmarketvaluation.com/models/buffett-indicator.php",
     "status": "error",
     "error": "HTTPSConnectionPool(host='www.currentmarketvaluation.com', port=443): Max retries exceeded with url: /models/buffett-indicator.php (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x10cc0a210>, 'Connection to www.currentmarketvaluation.com timed out. (connect timeout=30)'))"
+  },
+  {
+    "percentage": 0.0,
+    "indicator_value": 0.0,
+    "valuation_level": "Significantly Undervalued",
+    "raw": "0.0000",
+    "timestamp": "2026-03-30T23:10:56.580620",
+    "source": "MacroMicro",
+    "url": "https://en.macromicro.me/charts/406/us-buffet-index-gspc",
+    "status": "success",
+    "error": null
+  },
+  {
+    "percentage": null,
+    "indicator_value": null,
+    "valuation_level": null,
+    "raw": null,
+    "timestamp": "2026-03-30T23:11:18.697556",
+    "source": "MacroMicro",
+    "url": "https://en.macromicro.me/charts/406/us-buffet-index-gspc",
+    "status": "error",
+    "error": "Page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://en.macromicro.me/charts/406/us-buffet-index-gspc\", waiting until \"networkidle\"\n"
+  },
+  {
+    "percentage": 0.0,
+    "indicator_value": 0.0,
+    "valuation_level": "Significantly Undervalued",
+    "raw": "0.0000",
+    "timestamp": "2026-03-30T23:12:41.456222",
+    "source": "MacroMicro",
+    "url": "https://en.macromicro.me/charts/406/us-buffet-index-gspc",
+    "status": "success",
+    "error": null
+  },
+  {
+    "percentage": null,
+    "indicator_value": null,
+    "valuation_level": null,
+    "raw": null,
+    "timestamp": "2026-03-30T23:12:23.418588",
+    "source": "MacroMicro",
+    "url": "https://en.macromicro.me/charts/406/us-buffet-index-gspc",
+    "status": "error",
+    "error": "Page.goto: Timeout 60000ms exceeded.\nCall log:\n  - navigating to \"https://en.macromicro.me/charts/406/us-buffet-index-gspc\", waiting until \"networkidle\"\n"
+  },
+  {
+    "percentage": 201.94,
+    "indicator_value": 2.0194,
+    "valuation_level": "Significantly Overvalued",
+    "raw": "201.94",
+    "timestamp": "2026-03-30T23:16:03.811277",
+    "source": "MacroMicro",
+    "url": "https://en.macromicro.me/series/617/wilshire5000-to-gdp",
+    "status": "success",
+    "error": null
+  },
+  {
+    "percentage": 201.94,
+    "indicator_value": 2.0194,
+    "valuation_level": "Significantly Overvalued",
+    "raw": "201.94",
+    "timestamp": "2026-03-30T23:17:52.911682",
+    "source": "MacroMicro",
+    "url": "https://en.macromicro.me/series/617/wilshire5000-to-gdp",
+    "status": "success",
+    "error": null
   }
 ]
