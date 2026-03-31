@@ -37,16 +37,16 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          cd stoxx/indices
-          python fetch_all_indicators.py --output ../../fetch_indicators_summary.json
+          cd indices
+          python fetch_all_indicators.py --output ../fetch_indicators_summary.json
 
       - name: Insert Indicators to Database
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          cd stoxx/indices
-          python insert_indicators.py --input ../../fetch_indicators_summary.json
+          cd indices
+          python insert_indicators.py --input ../fetch_indicators_summary.json
 
       - name: Upload Summary Artifact
         if: always()
