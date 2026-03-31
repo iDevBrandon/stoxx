@@ -25,7 +25,7 @@ class IndicatorOrchestrator:
         'fear_greed':        ('fetch_fear_greed',        'FearGreedFetcher'),
         'vix':               ('fetch_vix',               'VIXFetcher'),
         'dxy':               ('fetch_dxy',               'DXYFetcher'),
-        'buffett_indicator': ('fetch_buffett_indicator', 'BuffettIndicatorFetcher'),
+        # 'buffett_indicator': ('fetch_buffett_indicator', 'BuffettIndicatorFetcher'),  # Temporarily disabled
     }
 
     def __init__(self):
@@ -190,7 +190,7 @@ class IndicatorOrchestrator:
 def main():
     parser = argparse.ArgumentParser(description='Fetch financial indicators')
     parser.add_argument('--indicators', '-i', nargs='+', 
-                       choices=['rsi', 'fear_greed', 'vix', 'dxy', 'buffett_indicator'],
+                       choices=['rsi', 'fear_greed', 'vix', 'dxy'],
                        help='Specific indicators to fetch (default: all)')
     parser.add_argument('--sequential', '-s', action='store_true',
                        help='Run fetchers sequentially instead of parallel')
