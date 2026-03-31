@@ -1,0 +1,22 @@
+{
+  "fetch_timestamp": "2026-03-30T22:57:29.237320",
+  "total_indicators": 1,
+  "successful": 1,
+  "failed": 0,
+  "results": {
+    "rsi": {
+      "indicator": "rsi",
+      "status": "success",
+      "data": {
+        "symbol": "VOO",
+        "rsi": 27.08,
+        "timestamp": "2026-03-30T22:57:28.316794",
+        "source": "TradingView",
+        "url": "https://www.tradingview.com/symbols/AMEX-VOO/technicals/",
+        "status": "success"
+      },
+      "error": null,
+      "timestamp": "2026-03-30T22:57:29.237084"
+    }
+  }
+}

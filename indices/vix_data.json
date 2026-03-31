@@ -1,0 +1,18 @@
+[
+  {
+    "symbol": "VIX",
+    "value": 30.62,
+    "timestamp": "2026-03-30T20:59:09.855421",
+    "source": "TradingView",
+    "url": "https://www.tradingview.com/symbols/TVC-VIX/",
+    "status": "success"
+  },
+  {
+    "symbol": "VIX",
+    "value": 30.62,
+    "timestamp": "2026-03-30T21:42:20.287424",
+    "source": "TradingView",
+    "url": "https://www.tradingview.com/symbols/TVC-VIX/",
+    "status": "success"
+  }
+]

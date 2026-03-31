@@ -1,0 +1,22 @@
+[
+  {
+    "indicator_value": null,
+    "percentage": null,
+    "valuation_level": null,
+    "timestamp": "2026-03-30T22:35:25.816446",
+    "source": "CurrentMarketValuation",
+    "url": "https://www.currentmarketvaluation.com/models/buffett-indicator.php",
+    "status": "error",
+    "error": "HTTPSConnectionPool(host='www.currentmarketvaluation.com', port=443): Max retries exceeded with url: /models/buffett-indicator.php (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x1080da210>, 'Connection to www.currentmarketvaluation.com timed out. (connect timeout=30)'))"
+  },
+  {
+    "indicator_value": null,
+    "percentage": null,
+    "valuation_level": null,
+    "timestamp": "2026-03-30T22:36:10.579999",
+    "source": "CurrentMarketValuation",
+    "url": "https://www.currentmarketvaluation.com/models/buffett-indicator.php",
+    "status": "error",
+    "error": "HTTPSConnectionPool(host='www.currentmarketvaluation.com', port=443): Max retries exceeded with url: /models/buffett-indicator.php (Caused by ConnectTimeoutError(<urllib3.connection.HTTPSConnection object at 0x10cc0a210>, 'Connection to www.currentmarketvaluation.com timed out. (connect timeout=30)'))"
+  }
+]
