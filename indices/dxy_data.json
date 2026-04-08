@@ -14,5 +14,13 @@
     "source": "TradingView",
     "url": "https://www.tradingview.com/symbols/TVC-DXY/",
     "status": "success"
+  },
+  {
+    "symbol": "DXY",
+    "value": 98.588,
+    "timestamp": "2026-04-08T18:34:47.669070",
+    "source": "TradingView",
+    "url": "https://www.tradingview.com/symbols/TVC-DXY/",
+    "status": "success"
   }
 ]

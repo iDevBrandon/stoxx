@@ -1,25 +1,65 @@
 {
-  "fetch_timestamp": "2026-03-30T23:17:55.592185",
-  "total_indicators": 1,
-  "successful": 1,
+  "fetch_timestamp": "2026-04-08T18:34:53.239311",
+  "total_indicators": 4,
+  "successful": 4,
   "failed": 0,
   "results": {
-    "buffett_indicator": {
-      "indicator": "buffett_indicator",
+    "fear_greed": {
+      "indicator": "fear_greed",
       "status": "success",
       "data": {
-        "percentage": 201.94,
-        "indicator_value": 2.0194,
-        "valuation_level": "Significantly Overvalued",
-        "raw": "201.94",
-        "timestamp": "2026-03-30T23:17:52.911682",
-        "source": "MacroMicro",
-        "url": "https://en.macromicro.me/series/617/wilshire5000-to-gdp",
+        "index_value": 31,
+        "label": "Fear",
+        "timestamp": "2026-04-08T18:34:47.306841",
+        "source": "CNN",
+        "url": "https://edition.cnn.com/markets/fear-and-greed",
         "status": "success",
         "error": null
       },
       "error": null,
-      "timestamp": "2026-03-30T23:17:55.592022"
+      "timestamp": "2026-04-08T18:34:47.348101"
+    },
+    "vix": {
+      "indicator": "vix",
+      "status": "success",
+      "data": {
+        "symbol": "VIX",
+        "value": 21.05,
+        "timestamp": "2026-04-08T18:34:47.671966",
+        "source": "TradingView",
+        "url": "https://www.tradingview.com/symbols/TVC-VIX/",
+        "status": "success"
+      },
+      "error": null,
+      "timestamp": "2026-04-08T18:34:47.674425"
+    },
+    "dxy": {
+      "indicator": "dxy",
+      "status": "success",
+      "data": {
+        "symbol": "DXY",
+        "value": 98.588,
+        "timestamp": "2026-04-08T18:34:47.669070",
+        "source": "TradingView",
+        "url": "https://www.tradingview.com/symbols/TVC-DXY/",
+        "status": "success"
+      },
+      "error": null,
+      "timestamp": "2026-04-08T18:34:47.674514"
+    },
+    "rsi": {
+      "indicator": "rsi",
+      "status": "success",
+      "data": {
+        "symbol": "VOO",
+        "rsi": 57.96,
+        "timestamp": "2026-04-08T18:34:46.457889",
+        "source": "TradingView",
+        "url": "https://www.tradingview.com/symbols/AMEX-VOO/technicals/",
+        "status": "success"
+      },
+      "error": null,
+      "timestamp": "2026-04-08T18:34:53.239097"
     }
   }
 }

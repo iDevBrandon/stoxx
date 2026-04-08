@@ -7,5 +7,14 @@
     "url": "https://edition.cnn.com/markets/fear-and-greed",
     "status": "success",
     "error": null
+  },
+  {
+    "index_value": 31,
+    "label": "Fear",
+    "timestamp": "2026-04-08T18:34:47.306841",
+    "source": "CNN",
+    "url": "https://edition.cnn.com/markets/fear-and-greed",
+    "status": "success",
+    "error": null
   }
 ]

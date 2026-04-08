@@ -30,5 +30,21 @@
     "source": "TradingView",
     "url": "https://www.tradingview.com/symbols/AMEX-VOO/technicals/",
     "status": "success"
+  },
+  {
+    "symbol": "VOO",
+    "rsi": 57.96,
+    "timestamp": "2026-04-08T18:34:25.830458",
+    "source": "TradingView",
+    "url": "https://www.tradingview.com/symbols/AMEX-VOO/technicals/",
+    "status": "success"
+  },
+  {
+    "symbol": "VOO",
+    "rsi": 57.96,
+    "timestamp": "2026-04-08T18:34:46.457889",
+    "source": "TradingView",
+    "url": "https://www.tradingview.com/symbols/AMEX-VOO/technicals/",
+    "status": "success"
   }
 ]

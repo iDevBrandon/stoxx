@@ -14,5 +14,13 @@
     "source": "TradingView",
     "url": "https://www.tradingview.com/symbols/TVC-VIX/",
     "status": "success"
+  },
+  {
+    "symbol": "VIX",
+    "value": 21.05,
+    "timestamp": "2026-04-08T18:34:47.671966",
+    "source": "TradingView",
+    "url": "https://www.tradingview.com/symbols/TVC-VIX/",
+    "status": "success"
   }
 ]

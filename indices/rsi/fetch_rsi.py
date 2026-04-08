@@ -22,6 +22,16 @@ class RSIFetcher:
     def fetch_voo_rsi(self):
         """Fetch RSI(14) data for VOO from TradingView using a headless browser."""
         timestamp = datetime.now()
+        
+        # Alternative selectors in case the main one fails
+        rsi_selectors = [
+            RSI_SELECTOR,
+            # Alternative selector patterns for RSI
+            "table tbody tr:nth-child(2) td:nth-child(2)",
+            "[data-name='RSI'] td:nth-child(2)",
+            "table tr:contains('RSI') td:nth-child(2)"
+        ]
+        
         try:
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
@@ -35,13 +45,41 @@ class RSIFetcher:
                 page = context.new_page()
 
                 print(f"Navigating to {TRADINGVIEW_URL} ...")
-                page.goto(TRADINGVIEW_URL, wait_until="domcontentloaded", timeout=60_000)
+                
+                # Increase timeout and add retry logic
+                for attempt in range(3):
+                    try:
+                        page.goto(TRADINGVIEW_URL, wait_until="networkidle", timeout=90_000)
+                        print(f"✅ Successfully navigated to TradingView (attempt {attempt + 1})")
+                        break
+                    except Exception as e:
+                        print(f"❌ Navigation attempt {attempt + 1} failed: {str(e)[:100]}")
+                        if attempt == 2:
+                            raise e
+                        print(f"🔄 Retrying in 5 seconds...")
+                        page.wait_for_timeout(5000)
 
-                # Wait for the oscillators table cell to appear
-                page.wait_for_selector(RSI_SELECTOR, timeout=30_000)
+                # Wait for page to fully load
+                print("⏳ Waiting for page content to load...")
+                page.wait_for_timeout(5000)
 
-                rsi_text = page.locator(RSI_SELECTOR).inner_text().strip()
-                rsi_value = float(rsi_text) if rsi_text else None
+                # Try multiple selectors
+                rsi_value = None
+                for i, selector in enumerate(rsi_selectors):
+                    try:
+                        print(f"🔍 Trying selector {i+1}: {selector[:50]}...")
+                        page.wait_for_selector(selector, timeout=15_000)
+                        rsi_text = page.locator(selector).inner_text().strip()
+                        
+                        if rsi_text and rsi_text.replace('.', '').replace('-', '').isdigit():
+                            rsi_value = float(rsi_text)
+                            print(f"✅ Found RSI value: {rsi_value}")
+                            break
+                        else:
+                            print(f"⚠️  Selector found but text invalid: '{rsi_text}'")
+                    except Exception as e:
+                        print(f"❌ Selector {i+1} failed: {str(e)[:50]}")
+                        continue
 
                 browser.close()
 
