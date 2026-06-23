@@ -2,7 +2,7 @@
 
 A Python-based stock evaluation engine that turns a simple **ticker list** into clear **trend, score, and buy/sell signals** using technical indicators like **RSI** and price trends.
 
-This project is designed as a foundation for a larger investing toolkit under **Oxinion Finance**, with future integration into **OMX notifications**.
+This project is designed as a foundation for a larger investing toolkit under **Oxinion Finance**, with future integration into **Oxinion SDK notifications**.
 
 ---
 
@@ -31,7 +31,7 @@ Indicator Calculation (RSI, Trend)
 ↓
 Score Calculation
 ↓
-Signal Generation (BUY / HOLD / SELL) with omx-sdk/notification integration (future)
+Signal Generation (BUY / HOLD / SELL) with oxinion-sdk/notification integration (future)
 
 ---
 
@@ -119,17 +119,17 @@ stock-evaluator/
 ├── main.py
 └── README.md
 Future Roadmap
-🔔 OMX Notification Pipeline (Planned)
-In the future, this evaluator will connect to OMX to:
+🔔 Oxinion SDK Notification Pipeline (Planned)
+In the future, this evaluator will connect to Oxinion SDK to:
 
 Trigger notifications when a stock turns BUY
 
-Send alerts via OMX workflows (email, push, webhook)
+Send alerts via Oxinion SDK workflows (email, push, webhook)
 
 Plug directly into geo-first automation pipelines
 
 Example:
-“RSI crossed below 30 → BUY signal → OMX sends notification”
+“RSI crossed below 30 → BUY signal → Oxinion SDK sends notification”
 
 ```
 
