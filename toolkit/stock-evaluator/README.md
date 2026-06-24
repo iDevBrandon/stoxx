@@ -48,7 +48,7 @@ Signal Generation (BUY / HOLD / SELL) with oxinion-sdk/notification integration 
 - Standard 14-period RSI
 - Used to identify oversold and overbought conditions
 
-**RSI Interpretation**
+#### RSI Interpretation
 
 - RSI < 30 → Oversold
 - RSI 30–50 → Weak / Neutral
@@ -77,7 +77,7 @@ Example logic:
 - Downtrend + Oversold → Score boost
 - Overbought → Score penalty
 
-**Higher score = more attractive entry**
+Higher score = more attractive entry.
 
 ---
 
@@ -311,4 +311,4 @@ create table signals (
 ) TABLESPACE pg_default;
 ```
 
-3. The application will automatically handle data insertion when environment variables are configured:
+1. The application will automatically handle data insertion when environment variables are configured:
