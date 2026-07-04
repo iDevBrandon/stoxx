@@ -1,37 +1,15 @@
 import json
-from datetime import datetime
 import os
+from datetime import datetime
 from playwright.sync_api import sync_playwright
-
-
-# CSS selector for the RSI value cell in TradingView's oscillators table
-RSI_SELECTOR = (
-    "#js-category-content > div.technicals-root > div > section > div "
-    "> div.tablesWrapper-kg4MJrFB.tabletVertical-kg4MJrFB "
-    "> div:nth-child(1) > div.tableWrapper-hvDpy38G "
-    "> table > tbody > tr:nth-child(2) > td:nth-child(2)"
-)
 
 TRADINGVIEW_URL = "https://www.tradingview.com/symbols/AMEX-VOO/technicals/"
 
 
 class RSIFetcher:
-    def __init__(self):
-        pass
-
     def fetch_voo_rsi(self):
-        """Fetch RSI(14) data for VOO from TradingView using a headless browser."""
         timestamp = datetime.now()
-        
-        # Alternative selectors in case the main one fails
-        rsi_selectors = [
-            RSI_SELECTOR,
-            # Alternative selector patterns for RSI
-            "table tbody tr:nth-child(2) td:nth-child(2)",
-            "[data-name='RSI'] td:nth-child(2)",
-            "table tr:contains('RSI') td:nth-child(2)"
-        ]
-        
+
         try:
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
@@ -40,113 +18,111 @@ class RSIFetcher:
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                         "AppleWebKit/537.36 (KHTML, like Gecko) "
                         "Chrome/124.0.0.0 Safari/537.36"
-                    )
+                    ),
+                    viewport={"width": 1280, "height": 900},
                 )
                 page = context.new_page()
 
-                print(f"Navigating to {TRADINGVIEW_URL} ...")
-                
-                # Increase timeout and add retry logic
-                for attempt in range(3):
-                    try:
-                        page.goto(TRADINGVIEW_URL, wait_until="networkidle", timeout=90_000)
-                        print(f"✅ Successfully navigated to TradingView (attempt {attempt + 1})")
-                        break
-                    except Exception as e:
-                        print(f"❌ Navigation attempt {attempt + 1} failed: {str(e)[:100]}")
-                        if attempt == 2:
-                            raise e
-                        print(f"🔄 Retrying in 5 seconds...")
-                        page.wait_for_timeout(5000)
+                print(f"🌐 Navigating to TradingView technicals...")
+                page.goto(TRADINGVIEW_URL, wait_until="domcontentloaded", timeout=60_000)
+                page.wait_for_timeout(6_000)
 
-                # Wait for page to fully load
-                print("⏳ Waiting for page content to load...")
-                page.wait_for_timeout(5000)
-
-                # Try multiple selectors
                 rsi_value = None
-                for i, selector in enumerate(rsi_selectors):
-                    try:
-                        print(f"🔍 Trying selector {i+1}: {selector[:50]}...")
-                        page.wait_for_selector(selector, timeout=15_000)
-                        rsi_text = page.locator(selector).inner_text().strip()
-                        
-                        if rsi_text and rsi_text.replace('.', '').replace('-', '').isdigit():
-                            rsi_value = float(rsi_text)
-                            print(f"✅ Found RSI value: {rsi_value}")
+
+                # ── Strategy 1: find RSI row by label, get value from 2nd <td> ──
+                try:
+                    print("🔍 Strategy 1: row label → 2nd cell value...")
+                    rows = page.locator("tr").all()
+                    for row in rows:
+                        try:
+                            label = row.locator("td").first.inner_text(timeout=300).strip()
+                        except Exception:
+                            continue
+                        if "Relative Strength Index" in label:
+                            try:
+                                raw = row.locator("td").nth(1).inner_text(timeout=2_000).strip()
+                                rsi_value = float(raw)
+                                print(f"✅ Strategy 1 found RSI: {rsi_value}")
+                            except Exception as e:
+                                print(f"⚠️  RSI row found but value parse failed: {e}")
                             break
-                        else:
-                            print(f"⚠️  Selector found but text invalid: '{rsi_text}'")
+                except Exception as e:
+                    print(f"⚠️  Strategy 1 failed: {e}")
+
+                # ── Strategy 2: all td.cell-* elements — skip non-numeric ────────
+                if rsi_value is None:
+                    try:
+                        print("🔍 Strategy 2: scan value cells for numeric RSI...")
+                        # grab all tds; RSI (0–100) will be among the first oscillator values
+                        cells = page.locator("td").all()
+                        for cell in cells[:60]:
+                            try:
+                                raw = cell.inner_text(timeout=200).strip()
+                                candidate = float(raw)
+                                if 0 < candidate < 100:
+                                    rsi_value = candidate
+                                    print(f"✅ Strategy 2 found RSI: {rsi_value}")
+                                    break
+                            except Exception:
+                                continue
                     except Exception as e:
-                        print(f"❌ Selector {i+1} failed: {str(e)[:50]}")
-                        continue
+                        print(f"⚠️  Strategy 2 failed: {e}")
 
                 browser.close()
 
+            status = "success" if rsi_value is not None else "no_data"
             return {
-                'symbol': 'VOO',
-                'rsi': rsi_value,
-                'timestamp': timestamp.isoformat(),
-                'source': 'TradingView',
-                'url': TRADINGVIEW_URL,
-                'status': 'success' if rsi_value is not None else 'no_data',
+                "symbol": "VOO",
+                "rsi": rsi_value,
+                "timestamp": timestamp.isoformat(),
+                "source": "TradingView",
+                "url": TRADINGVIEW_URL,
+                "status": status,
             }
 
         except Exception as e:
             return {
-                'symbol': 'VOO',
-                'rsi': None,
-                'timestamp': timestamp.isoformat(),
-                'source': 'TradingView',
-                'url': TRADINGVIEW_URL,
-                'status': 'error',
-                'error': str(e),
+                "symbol": "VOO",
+                "rsi": None,
+                "timestamp": timestamp.isoformat(),
+                "source": "TradingView",
+                "url": TRADINGVIEW_URL,
+                "status": "error",
+                "error": str(e),
             }
 
-
     def save_to_file(self, data, filename="rsi_data.json"):
-        """Save RSI data to local file"""
         try:
-            # Read existing data
+            existing = []
             if os.path.exists(filename):
-                with open(filename, 'r') as f:
-                    existing_data = json.load(f)
-            else:
-                existing_data = []
-            
-            # Append new data
-            existing_data.append(data)
-            
-            # Keep only last 1000 records
-            existing_data = existing_data[-1000:]
-            
-            # Save back to file
-            with open(filename, 'w') as f:
-                json.dump(existing_data, f, indent=2, default=str)
-            
+                with open(filename, "r") as f:
+                    existing = json.load(f)
+            existing.append(data)
+            existing = existing[-1000:]
+            with open(filename, "w") as f:
+                json.dump(existing, f, indent=2, default=str)
             return True
         except Exception as e:
             print(f"Error saving to file: {e}")
             return False
 
     def run(self):
-        """Main execution function"""
-        print("Fetching RSI data for VOO...")
-        
+        print("Fetching RSI(14) for VOO from TradingView...")
         data = self.fetch_voo_rsi()
-        
+
         print(f"RSI Value: {data['rsi']}")
         print(f"Status: {data['status']}")
         print(f"Timestamp: {data['timestamp']}")
-        
-        # Save to local file
-        saved_to_file = self.save_to_file(data)
 
-        if saved_to_file:
+        if self.save_to_file(data):
             print("✅ Data saved to local file")
-        
+
+        if data["status"] not in ("success",):
+            raise RuntimeError(f"rsi fetch failed: {data.get('error', data['status'])}")
+
         return data
+
 
 if __name__ == "__main__":
     fetcher = RSIFetcher()
-    result = fetcher.run()
+    fetcher.run()
