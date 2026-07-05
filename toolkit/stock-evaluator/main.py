@@ -1,4 +1,6 @@
 import os
+import requests
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from supabase import create_client
 import yfinance as yf
@@ -24,6 +26,37 @@ else:
 # -----------------------------
 # Configuration
 # -----------------------------
+
+def fetch_ioo_tickers():
+    """Fetch the top 100 global companies from companiesmarketcap.com (first page)."""
+    try:
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/120.0.0.0 Safari/537.36"
+            ),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        }
+        r = requests.get("https://companiesmarketcap.com/", headers=headers, timeout=15)
+        r.raise_for_status()
+        soup = BeautifulSoup(r.text, "html.parser")
+        tickers = []
+        # Tickers live in: <div class="company-code"><span class="rank d-none"></span>2222.SR</div>
+        for div in soup.select("div.company-code"):
+            # Remove the rank span, then grab remaining text
+            for span in div.select("span.rank"):
+                span.decompose()
+            ticker = div.get_text(strip=True)
+            if ticker and ticker not in tickers:
+                tickers.append(ticker)
+        print(f"[INFO] Fetched {len(tickers)} IOO tickers from companiesmarketcap.com")
+        return tickers
+    except Exception as e:
+        print(f"[WARN] Could not fetch IOO tickers: {e}")
+        return []
+
+IOO = fetch_ioo_tickers()
 
 OXNO = ["INTU", "MSCI" , "CTAS", "NVO",  "HESAY", "LMP.L" ,"ZTS", "V", "KLAC", "APH", "PH","FIX", "DPZ"]
 
@@ -228,12 +261,13 @@ def evaluate_stock(ticker):
 if __name__ == "__main__":
 
     INDEX_GROUPS = {
-        "QQQ": QQQ,
-        "VIG": VIG,
-        "VXUS": VXUS,
-        "CAGR": CAGR,
-        "GURU": GURU,
-        "OXNO": OXNO,
+        # "QQQ": QQQ,
+        # "VIG": VIG,
+        # "VXUS": VXUS,
+        # "CAGR": CAGR,
+        # "GURU": GURU,
+        # "OXNO": OXNO,
+        "IOO": IOO,
         # "ALT": ALT
     }
 
