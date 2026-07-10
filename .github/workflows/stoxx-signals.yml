@@ -2,8 +2,8 @@ name: Stoxx — Fetch IOO Signals
 
 on:
   schedule:
-    # Runs daily at 01:00 UTC (after Asian markets open, before EU/US)
-    - cron: "0 1 * * 1-5"
+    # Runs at 10:45 AM New York time (EDT, UTC-4)
+    - cron: "45 14 * * 1-5"
   workflow_dispatch: # allow manual trigger from GitHub UI
 
 jobs:
