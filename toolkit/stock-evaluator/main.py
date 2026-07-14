@@ -56,26 +56,119 @@ def fetch_ioo_tickers():
         print(f"[WARN] Could not fetch IOO tickers: {e}")
         return []
 
-IOO = fetch_ioo_tickers()
+# NOTE: IOO's ticker list is fetched lazily inside __main__ (only when
+# "IOO" is actually enabled there), not at import time — a bare
+# `IOO = fetch_ioo_tickers()` here used to scrape companiesmarketcap.com
+# live as a side effect of just importing this module, even if the caller
+# never wanted IOO for that run.
 
 OXNO = ["INTU", "MSCI" , "CTAS", "NVO",  "HESAY", "LMP.L" ,"ZTS", "V", "KLAC", "APH", "PH","FIX", "DPZ"]
 
-CAGR = ['SMT.L', 'NET', "FICO", "NTDOY", "VRSN", "SE", "SOFI", "SPOT"]
-
 
 QQQ = [
-  "ADBE","AMD","ABNB","ALNY","GOOGL","GOOG","AMZN","AEP","AMGN","ADI",
-  "AAPL","AMAT","APP","ARM","ASML","AZN","TEAM","ADSK","ADP","AXON",
-  "BKR","BKNG","AVGO","CDNS","CHTR","CTAS","CSCO","CCEP","CTSH","CMCSA",
-  "CEG","CPRT","CSGP","COST","CRWD","CSX","DDOG","DXCM","FANG","DASH",
-  "EA","EXC","FAST","FER","FTNT","GEHC","GILD","HON","IDXX","INSM",
-  "INTC","INTU","ISRG","KDP","KLAC","KHC","LRCX","LIN","MAR","MRVL",
-  "MELI","META","MCHP","MU","MSFT","MSTR","MDLZ","MPWR","MNST","NFLX",
-  "NVDA","NXPI","ORLY","ODFL","PCAR","PLTR","PANW","PAYX","PYPL","PDD",
-  "PEP","QCOM","REGN","ROP","ROST","STX","SHOP","SBUX","SNPS","TMUS",
-  "TTWO","TSLA","TXN","TRI","VRSK","VRTX","WBD","WDC","WDAY","XEL",
-  "ZS"
-]
+  "NVDA", "AAPL",
+  "MSFT",
+  "AMZN",
+  "GOOGL",
+  "GOOG",
+  "AVGO",
+  "SPCX",
+  "META",
+  "TSLA",
+  "MU",
+  "WMT",
+  "AMD",
+  "ASML",
+  "INTC",
+  "AMAT",
+  "CSCO",
+  "LRCX",
+  "COST",
+  "PLTR",
+  "NFLX",
+  "KLAC",
+  "ARM",
+  "PANW",
+  "TXN",
+  "SNDK",
+  "LIN",
+  "CRWD",
+  "TMUS",
+  "MRVL",
+  "STX",
+  "WDC",
+  "AMGN",
+  "ADI",
+  "QCOM",
+  "PEP",
+  "SHOP",
+  "GILD",
+  "APP",
+  "BKNG",
+  "ISRG",
+  "FTNT",
+  "VRTX",
+  "SBUX",
+  "PDD",
+  "CDNS",
+  "ADP",
+  "DDOG",
+  "MNST",
+  "MAR",
+  "MELI",
+  "CEG",
+  "CSX",
+  "ADBE",
+  "ABNB",
+  "CMCSA",
+  "DASH",
+  "SNPS",
+  "INTU",
+  "MDLZ",
+  "CTAS",
+  "AEP",
+  "NXPI",
+  "ORLY",
+  "HON",
+  "ROST",
+  "REGN",
+  "WBD",
+  "MPWR",
+  "HONA",
+  "PCAR",
+  "LITE",
+  "ALAB",
+  "BKR",
+  "TER",
+  "FANG",
+  "FAST",
+  "EA",
+  "XEL",
+  "NBIS",
+  "RKLB",
+  "EXC",
+  "ODFL",
+  "MCHP",
+  "CCEP",
+  "FER",
+  "AXON",
+  "TTWO",
+  "CRWV",
+  "ADSK",
+  "IDXX",
+  "PYPL",
+  "KDP",
+  "TRI",
+  "PAYX",
+  "ALNY",
+  "ROP",
+  "MSTR",
+  "WDAY",
+  "KHC",
+  "DXCM",
+  "GEHC",
+  "CPRT",
+];
 
 
 VIG = [
@@ -111,7 +204,59 @@ VIG = [
     "YORW","FBIZ","HY","UNTY","SCVL"
 ]
 
-
+VOO = [
+  "NVDA","AAPL","MSFT","AMZN","GOOGL","GOOG","AVGO","META","TSLA","MU",
+  "BRK-B","LLY","JPM","WMT","AMD","V","JNJ","XOM","INTC","MA",
+  "AMAT","CSCO","LRCX","ABBV","BAC","CAT","COST","UNH","ORCL","GE",
+  "CVX","MS","KO","PG","HD","GS","PLTR","NFLX","KLAC","MRK",
+  "DELL","PANW","GEV","TXN","PM","RTX","WFC","SNDK","AXP","LIN",
+  "ANET","C","CRWD","IBM","TMUS","MRVL","STX","TMO","APH","WDC",
+  "AMGN","ADI","MCD","QCOM","NEE","PEP","VZ","SCHW","UNP","BA",
+  "WELL","DIS","TJX","GILD","ETN","GLW","BLK","DE","ABT","BX",
+  "APP","T","UBER","DHR","PFE","CRM","COP","BKNG","CVS","ISRG",
+  "CB","PGR","PLD","SPGI","COF","FTNT","PH","VRTX","SBUX","SYK",
+  "LMT","MO","LOW","VRT","BMY","HWM","SO","NOW","TT","BNY",
+  "CDNS","HOOD","MDT","NEM","PWR","EQIX","PNC","GD","DUK","ADP",
+  "USB","DDOG","UPS","MNST","MAR","WM","WMB","ELV","MCK","CMI",
+  "CEG","CSX","VLO","FCX","CME","MPC","JCI","ADBE","KKR","ABNB",
+  "MCO","MRSH","CMCSA","ACN","DASH","MMM","SNPS","SHW","PSX","HCA",
+  "CI","AMT","ITW","ICE","INTU","ECL","AON","EMR","RCL","NOC",
+  "MDLZ","FDX","CTAS","HLT","CL","AEP","NSC","NXPI","KMI","EOG",
+  "TRV","SLB","SPG","ORLY","HON","ROST","CRH","GM","APO","REGN",
+  "WBD","MSI","TDG","MPWR","RSG","APD","URI","HONA","HPE","AJG",
+  "PCAR","GWW","TFC","ALL","DLR","BSX","NKE","LITE","CIEN","D",
+  "FIX","AFL","TGT","SRE","COHR","TRGP","MET","O","COR","TEL",
+  "CARR","OKE","BKR","CTVA","PSA","DAL","F","TER","LHX","KEYS",
+  "OXY","VST","CAH","ETR","NUE","AME","FANG","FAST","ROK","FITB",
+  "EA","EW","STT","CVNA","XEL","DVN","EBAY","NDAQ","AZO","HUM",
+  "EXC","FLEX","XYZ","ODFL","MCHP","CMG","GRMN","AMP","VTR","AXON",
+  "MSCI","WAB","TTWO","ADSK","YUM","DHI","IBKR","IDXX","COIN","LYV",
+  "BDX","AIG","PYPL","KDP","ED","PEG","PRU","ADM","SYY","UAL",
+  "CBRE","PAYX","PCG","A","HIG","VMC","WEC","WAT","ON","CCL",
+  "HBAN","KVUE","IRM","KR","MTB","KMB","ACGL","ROP","HSY","NTRS",
+  "IQV","MLM","EME","NTAP","CCI","WDAY","JBL","CNC","STLD","RJF",
+  "EXPE","CASY","VEEV","AEE","EQT","DTE","ZTS","IR","EXR","Q",
+  "NRG","ATO","KHC","LVS","CFG","EL","HAL","EIX","VICI","TDY",
+  "DOV","TPL","CNP","XYL","CBOE","FE","DXCM","RMD","BIIB","GEHC",
+  "FICO","ES","OTIS","CINF","TPR","WTW","AVB","ARES","PPL","MRNA",
+  "WRB","DG","MTD","FISV","JBHT","RF","WSM","EQR","AWK","CPRT",
+  "PPG","HUBB","WST","KEY","VRSK","TROW","SYF","VRSN","PFG","FFIV",
+  "DLTR","PHM","FSLR","L","CHRW","CPAY","EXPD","BRO","LUV","CMS",
+  "OMC","INCY","DGX","CHD","BG","LH","VLTO","HPQ","SW","STZ",
+  "DRI","NI","RL","DOW","FDXF","ROL","FIS","SNA","EXE","CTSH",
+  "GPN","STE","TSN","LEN","PKG","ULTA","EVRG","SBAC","AMCR","EFX",
+  "LNT","LII","GIS","IP","ESS","IFF","VTRS","LYB","FTV","AKAM",
+  "CF","DD","INVH","SMCI","CDW","BBY","ZBH","NVR","BEN","WY",
+  "KIM","BR","GPC","IEX","NDSN","BALL","HST","GEN","TSCO","MAS",
+  "CHTR","MAA","TXT","J","ALB","DOC","DECK","EG","REG","DVA",
+  "MKC","PTC","GL","TKO","AIZ","SWK","HRL","LDOS","COO","LULU",
+  "PNW","GNRC","SOLV","UDR","ALGN","IVZ","ERIE","TYL","RVTY","ZBRA",
+  "APTV","APA","PNR","GDDY","TRMB","AVY","MGM","ALLE","SJM","BF-B",
+  "CLX","CSGP","BAX","HAS","CPT","TECH","CRL","HII","PODD","FOXA",
+  "BXP","FOX","FRT","AES","JKHY","DPZ","PSKY","NWSA","WYNN","HSIC",
+  "FDS","NCLH","IT","TTD","UHS","SWKS","AOS","ARE","BLDR","TAP",
+  "MOS","NWS","SATS"
+];
 
 
 VXUS = [
@@ -178,6 +323,16 @@ ALT = [
 
 RSI_WINDOW = 14
 LOOKBACK_DAYS_CALENDAR = 90
+
+# Rows not touched by any run in this many days are considered stale and get
+# pruned after a successful save (see prune_stale_signals below). This is
+# time-based rather than "delete anything not in this run's ticker list" on
+# purpose: if a single run has a transient failure (e.g. the IOO scrape
+# comes back empty, or yfinance rate-limits a batch of tickers), a
+# time-based cutoff won't wipe out otherwise-valid rows over one bad run —
+# only tickers that have gone untouched across many runs (e.g. an index
+# group that got disabled in ENABLED_INDEXES) get removed.
+STALE_DAYS = 7
 
 # -----------------------------
 # Functions
@@ -255,39 +410,94 @@ def evaluate_stock(ticker):
         "Signal": signal
     }
 
+def prune_stale_signals(days=STALE_DAYS):
+    """Deletes signals rows whose updated_at is older than `days`. Runs
+    after a successful save so a ticker that's dropped out of every
+    currently-enabled index group (e.g. VIG/GURU/etc. after they were
+    disabled in ENABLED_INDEXES) eventually gets cleaned out instead of
+    sitting in the table forever with a frozen updated_at."""
+    if not supabase:
+        return
+    cutoff = (datetime.now() - timedelta(days=days)).isoformat()
+    try:
+        res = (
+            supabase.table("signals")
+            .delete()
+            .lt("updated_at", cutoff)
+            .execute()
+        )
+        removed = len(res.data) if res.data else 0
+        if removed:
+            print(f"[INFO] Pruned {removed} stale signal(s) untouched for {days}+ days")
+    except Exception as e:
+        print(f"[ERROR] Pruning stale signals failed: {e}")
+
 # -----------------------------
-# Main Execution (Push one by one)
+# Main Execution
 # -----------------------------
 if __name__ == "__main__":
 
-    INDEX_GROUPS = {
-        # "QQQ": QQQ,
-        # "VIG": VIG,
-        # "VXUS": VXUS,
-        # "CAGR": CAGR,
-        # "GURU": GURU,
-        # "OXNO": OXNO,
-        "IOO": IOO,
-        # "ALT": ALT
+    # Toggle which indexes this run covers. IOO does a live scrape of
+    # companiesmarketcap.com, so it's only fetched below if it's actually
+    # in this list — no more unconditional scraping at import time.
+    ENABLED_INDEXES = ["IOO", "QQQ", "VOO"]
+    # ENABLED_INDEXES += ["VIG", "VXUS", "GURU", "OXNO", "ALT"]  # wider coverage
+
+    STATIC_INDEX_TICKERS = {
+        "QQQ": QQQ,
+        "VOO": VOO,
+        "VIG": VIG,
+        "VXUS": VXUS,
+        "GURU": GURU,
+        "OXNO": OXNO,
+        "ALT": ALT,
     }
 
-    # Collect all results first, then consolidate
-    all_ticker_data = {}
-    
+    INDEX_GROUPS = {}
+    for name in ENABLED_INDEXES:
+        if name == "IOO":
+            INDEX_GROUPS["IOO"] = fetch_ioo_tickers()
+        elif name in STATIC_INDEX_TICKERS:
+            INDEX_GROUPS[name] = STATIC_INDEX_TICKERS[name]
+
+    # Map each ticker to every index group it belongs to. QQQ and VOO share
+    # a large overlap (AAPL, MSFT, NVDA, ...), so without this a shared
+    # ticker would get fetched from yfinance once per index it appears in.
+    # Evaluating each unique ticker exactly once keeps this run to
+    # len(unique tickers) network calls instead of sum(len(group) for
+    # group in INDEX_GROUPS.values()).
+    ticker_to_indexes: dict[str, list[str]] = {}
     for index_name, tickers in INDEX_GROUPS.items():
-        print(f"\nAnalyzing {index_name} ({len(tickers)} stocks)...\n")
+        for t in tickers:
+            ticker_to_indexes.setdefault(t, [])
+            if index_name not in ticker_to_indexes[t]:
+                ticker_to_indexes[t].append(index_name)
 
-        results = [evaluate_stock(t) for t in tickers]
-        df = pd.DataFrame([r for r in results if r is not None])
+    unique_tickers = list(ticker_to_indexes.keys())
+    print(
+        f"\nEvaluating {len(unique_tickers)} unique tickers across "
+        f"{len(INDEX_GROUPS)} index(es): {', '.join(INDEX_GROUPS.keys())}\n"
+    )
 
-        if df.empty:
+    evaluated: dict[str, dict] = {}
+    for t in unique_tickers:
+        result = evaluate_stock(t)
+        if result is not None:
+            evaluated[t] = result
+
+    # Per-index console output, sourced from the de-duplicated evaluation
+    # pass above instead of re-fetching each ticker per group.
+    for index_name, tickers in INDEX_GROUPS.items():
+        rows = [evaluated[t] for t in tickers if t in evaluated]
+        if not rows:
             print(f"No valid data for {index_name}")
             continue
 
+        df = pd.DataFrame(rows)
         df["Index"] = index_name
         df_sorted = df.sort_values(by="Score", ascending=False)
 
-        # Print Table
+        print(f"\n{index_name} ({len(tickers)} stocks, {len(rows)} resolved)")
         print("=" * 90)
         print(f"{'Index':<6} {'Ticker':<10} {'Price':<10} {'RSI':<8} {'Trend':<6} {'Score':<8} {'Signal':<15}")
         print("-" * 90)
@@ -305,45 +515,46 @@ if __name__ == "__main__":
         for sig in ["STRONG BUY", "BUY", "HOLD", "SELL", "STRONG SELL"]:
             print(f"{sig:<15}: {counts.get(sig, 0)}")
         print("=" * 90)
-        
-        # Consolidate ticker data
-        for _, row in df.iterrows():
-            ticker = row['Ticker']
-            if ticker in all_ticker_data:
-                # Add index to existing ticker
-                existing_indexes = all_ticker_data[ticker]['index_names'].split(',')
-                if index_name not in existing_indexes:
-                    all_ticker_data[ticker]['index_names'] = ','.join(existing_indexes + [index_name])
-                # Always update the timestamp and data
-                all_ticker_data[ticker].update({
-                    'price': float(row['Price']),
-                    'rsi': float(row['RSI']),
-                    'trend': row['Trend'],
-                    'score': int(row['Score']),
-                    'signal': row['Signal'],
-                    'updated_at': datetime.now().isoformat()
-                })
-            else:
-                # New ticker
-                all_ticker_data[ticker] = {
-                    'ticker': ticker,
-                    'index_names': index_name,
-                    'price': float(row['Price']),
-                    'rsi': float(row['RSI']),
-                    'trend': row['Trend'],
-                    'score': int(row['Score']),
-                    'signal': row['Signal'],
-                    'updated_at': datetime.now().isoformat()
-                }
 
-    # Save consolidated results to Supabase
+    # Consolidate one row per unique ticker (comma-joined index_names) —
+    # matches the live `signals` table's actual constraint, `unique(ticker)`
+    # (confirmed against the real Supabase schema; the README's older
+    # `unique(index_name, ticker)` example is stale and doesn't match what's
+    # deployed).
+    all_ticker_data = {
+        ticker: {
+            'ticker': ticker,
+            'index_names': ','.join(ticker_to_indexes[ticker]),
+            'price': float(result['Price']),
+            'rsi': float(result['RSI']),
+            'trend': result['Trend'],
+            'score': int(result['Score']),
+            'signal': result['Signal'],
+            'updated_at': datetime.now().isoformat(),
+        }
+        for ticker, result in evaluated.items()
+    }
+
+    # Save consolidated results to Supabase in a single batched upsert
+    # instead of one HTTP round trip per ticker (previously 800+ separate
+    # requests for IOO alone, and would have been 1000+ with QQQ/VOO added).
+    # Still logs one line per ticker like before — that's just printing
+    # from the local `rows_to_save` list, not a separate network call per
+    # line, so the batching win is unaffected.
     if supabase and all_ticker_data:
-        print(f"\nSaving {len(all_ticker_data)} consolidated ticker records...")
-        for ticker, data in all_ticker_data.items():
-            try:
-                supabase.table("signals").upsert(data, on_conflict="ticker").execute()
-                print(f"[INFO] Upserted {ticker} ({data['index_names']})")
-            except Exception as e:
-                print(f"[ERROR] Error saving {ticker}: {e}")
+        rows_to_save = list(all_ticker_data.values())
+        print(f"\nSaving {len(rows_to_save)} consolidated ticker records...")
+        try:
+            supabase.table("signals").upsert(rows_to_save, on_conflict="ticker").execute()
+            for row in rows_to_save:
+                print(f"[INFO] Upserted {row['ticker']} ({row['index_names']})")
+            print(f"[INFO] Upserted {len(rows_to_save)} tickers total")
+        except Exception as e:
+            print(f"[ERROR] Batch upsert failed: {e}")
     elif all_ticker_data:
         print(f"\n[INFO] Supabase not configured. {len(all_ticker_data)} records not saved.")
+
+    # Clean out rows nothing has touched in a while (e.g. leftover GURU/VIG
+    # data from before ENABLED_INDEXES was narrowed to IOO/QQQ/VOO) so the
+    # table only reflects indexes this script actually keeps refreshed.
+    prune_stale_signals()
