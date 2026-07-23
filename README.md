@@ -10,7 +10,7 @@ selenuim is easy to use and download a lot images from the website automacially.
 
 As a JS developer, i would like practice with puppeteer or cheerio.
 
-<img width="1404" alt="Screen Shot 2022-07-29 at 12 21 00 AM" src="https://user-images.githubusercontent.com/40842018/181575583-5fa57341-c4ec-424e-a879-7c567766425c.png">
+![Screen Shot 2022-07-29 at 12 21 00 AM](https://user-images.githubusercontent.com/40842018/181575583-5fa57341-c4ec-424e-a879-7c567766425c.png)
 
 ## Filter
 
@@ -146,7 +146,7 @@ python fetch_all_indicators.py --quiet
 
 ### Command Line Options
 
-```
+```bash
 python fetch_all_indicators.py [OPTIONS]
 
 Options:
@@ -189,7 +189,7 @@ CREATE TABLE indicators (
 
 ## Example Output
 
-```
+```bash
 🚀 Starting financial indicators fetch...
 ⏱️  Timestamp: 2024-01-15T10:30:00
 
