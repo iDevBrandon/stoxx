@@ -62,7 +62,7 @@ def fetch_ioo_tickers():
 # live as a side effect of just importing this module, even if the caller
 # never wanted IOO for that run.
 
-OXNO = ["INTU", "MSCI" , "CTAS", "NVO",  "HESAY", "LMP.L" ,"ZTS", "V", "KLAC", "APH", "PH","FIX", "DPZ"]
+OXNO = ["INTU", "MSCI" , "CTAS", "NVO",  "HESAY", "LMP.L" ,"ZTS", "V", "KLAC", "APH", "PH","FIX", "DPZ", "QQQM"]
 
 
 QQQ = [
@@ -397,6 +397,7 @@ def evaluate_stock(ticker):
 
     rsi = calculate_rsi(df["Close"])
     start_p, end_p, color = get_sparkline_metrics(df)
+    chg90d = round((end_p / start_p - 1.0) * 100.0, 1) if start_p else 0.0
     score = calculate_score(rsi, color)
     signal = generate_signal(score)
 
@@ -406,6 +407,7 @@ def evaluate_stock(ticker):
         "RSI": round(rsi, 1),
         "Trend": "DOWN" if color == "RED" else "UP",
         "Color": color,
+        "Chg90d": chg90d,
         "Score": score,
         "Signal": signal
     }
@@ -440,7 +442,7 @@ if __name__ == "__main__":
     # Toggle which indexes this run covers. IOO does a live scrape of
     # companiesmarketcap.com, so it's only fetched below if it's actually
     # in this list — no more unconditional scraping at import time.
-    ENABLED_INDEXES = ["IOO", "QQQ", "VOO"]
+    ENABLED_INDEXES = ["IOO", "QQQ", "VOO", "OXNO"]
     # ENABLED_INDEXES += ["VIG", "VXUS", "GURU", "OXNO", "ALT"]  # wider coverage
 
     STATIC_INDEX_TICKERS = {
@@ -528,6 +530,7 @@ if __name__ == "__main__":
             'price': float(result['Price']),
             'rsi': float(result['RSI']),
             'trend': result['Trend'],
+            'chg90d': float(result['Chg90d']),
             'score': int(result['Score']),
             'signal': result['Signal'],
             'updated_at': datetime.now().isoformat(),
