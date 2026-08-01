@@ -24,10 +24,10 @@ jobs:
       max-parallel: 4
       matrix:
         include:
-          - { key: BM5S4VA266LYHYCX, offset: 0 }
-          - { key: 94GPDJ120V7O2XHF, offset: 25 }
-          - { key: SEVGMAKW4KDEK4FN, offset: 50 }
-          - { key: TI8S0OWPPLOG279J, offset: 75 }
+          - { key: HW0UW8UKOT5J33CR, offset: 0 }
+          - { key: RSMMBD25R52KYN0U, offset: 25 }
+          - { key: 7PVM9TVIDOZQSGHA, offset: 50 }
+          - { key: 9NN0G07UZBBMDY6G, offset: 75 }
 
     env:
       FINANCE_SUPABASE_URL: ${{ secrets.FINANCE_SUPABASE_URL }}
