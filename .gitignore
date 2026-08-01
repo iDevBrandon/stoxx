@@ -1,2 +1,4 @@
 node_modules
 .env
+# EPS crawler local resume checkpoint
+eps/.eps_empty.txt

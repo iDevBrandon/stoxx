@@ -3,11 +3,11 @@ import json
 from supabase import create_client, Client
 
 def main():
-    supabase_url = os.environ.get("FINANCE_SUPABASE_URL")
-    supabase_key = os.environ.get("FINANCE_SECRET_KEY")
+    supabase_url = os.environ.get("SUPABASE_URL")
+    supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY")
     
     if not supabase_url or not supabase_key:
-        print("Error: Missing Supabase credentials (FINANCE_SUPABASE_URL, FINANCE_SECRET_KEY)")
+        print("Error: Missing Supabase credentials (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)")
         return
         
     supabase: Client = create_client(supabase_url, supabase_key)

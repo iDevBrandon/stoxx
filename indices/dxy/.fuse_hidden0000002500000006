@@ -10,10 +10,10 @@ from supabase import create_client, Client
 
 load_dotenv()
 
-class VIXFetcher:
+class DXYFetcher:
     def __init__(self):
-        self.supabase_url = os.getenv("FINANCE_SUPABASE_URL")
-        self.supabase_key = os.getenv("FINANCE_SECRET_KEY") 
+        self.supabase_url = os.getenv("SUPABASE_URL")
+        self.supabase_key = os.getenv("SUPABASE_KEY") 
         if self.supabase_url and self.supabase_key:
             self.supabase = create_client(self.supabase_url, self.supabase_key)
         else:
@@ -24,17 +24,17 @@ class VIXFetcher:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         })
 
-    def fetch_vix_from_tradingview(self):
-        """Fetch VIX data from TradingView"""
+    def fetch_dxy_from_tradingview(self):
+        """Fetch DXY (Dollar Index) data from TradingView"""
         try:
-            url = "https://www.tradingview.com/symbols/TVC-VIX/"
+            url = "https://www.tradingview.com/symbols/TVC-DXY/"
             
             response = self.session.get(url, timeout=30)
             response.raise_for_status()
             
             soup = BeautifulSoup(response.content, 'html.parser')
             
-            vix_value = None
+            dxy_value = None
             timestamp = datetime.now()
             
             # Method 1: Look for price in script tags (TradingView often has JSON data)
@@ -47,7 +47,7 @@ class VIXFetcher:
                         r'"price"[:\s]*(\d+\.?\d*)',
                         r'"last"[:\s]*(\d+\.?\d*)',
                         r'"close"[:\s]*(\d+\.?\d*)',
-                        r'VIX[^}]*?(\d+\.?\d+)'
+                        r'DXY[^}]*?(\d+\.?\d+)'
                     ]
                     
                     for pattern in price_patterns:
@@ -55,17 +55,17 @@ class VIXFetcher:
                         if match:
                             try:
                                 value = float(match.group(1))
-                                # VIX typically ranges from 10-80+
-                                if 5 <= value <= 100:
-                                    vix_value = value
+                                # DXY typically ranges from 80-120
+                                if 70 <= value <= 150:
+                                    dxy_value = value
                                     break
                             except:
                                 continue
-                    if vix_value:
+                    if dxy_value:
                         break
             
             # Method 2: Look for price in specific TradingView class elements
-            if not vix_value:
+            if not dxy_value:
                 price_selectors = [
                     'div[data-field="last_price"]',
                     '.js-symbol-last',
@@ -83,41 +83,41 @@ class VIXFetcher:
                         if match:
                             try:
                                 value = float(match.group(1))
-                                if 5 <= value <= 100:
-                                    vix_value = value
+                                if 70 <= value <= 150:
+                                    dxy_value = value
                                     break
                             except:
                                 continue
-                    if vix_value:
+                    if dxy_value:
                         break
             
-            # Method 3: Look for any large number that could be the VIX price
-            if not vix_value:
+            # Method 3: Look for any number that could be the DXY price
+            if not dxy_value:
                 # Find all text that contains decimal numbers
                 all_text = soup.get_text()
-                number_matches = re.findall(r'\b(\d{1,2}\.\d{2})\b', all_text)
+                number_matches = re.findall(r'\b(\d{2,3}\.\d{2,4})\b', all_text)
                 
                 for match in number_matches:
                     try:
                         value = float(match)
-                        if 5 <= value <= 100:  # Reasonable VIX range
-                            vix_value = value
+                        if 70 <= value <= 150:  # Reasonable DXY range
+                            dxy_value = value
                             break
                     except:
                         continue
             
             return {
-                'symbol': 'VIX',
-                'value': vix_value,
+                'symbol': 'DXY',
+                'value': dxy_value,
                 'timestamp': timestamp.isoformat(),
                 'source': 'TradingView',
                 'url': url,
-                'status': 'success' if vix_value is not None else 'no_data'
+                'status': 'success' if dxy_value is not None else 'no_data'
             }
             
         except Exception as e:
             return {
-                'symbol': 'VIX',
+                'symbol': 'DXY',
                 'value': None,
                 'timestamp': datetime.now().isoformat(),
                 'source': 'TradingView',
@@ -126,84 +126,154 @@ class VIXFetcher:
                 'error': str(e)
             }
 
-    def fetch_vix_from_google(self):
-        """Alternative: Fetch VIX from Google Finance"""
+    def fetch_dxy_from_investing(self):
+        """Alternative: Fetch DXY from Investing.com"""
         try:
-            url = "https://www.google.com/finance/quote/VIX:INDEXCBOE"
+            url = "https://www.investing.com/indices/usdollar"
             
             response = self.session.get(url, timeout=30)
             response.raise_for_status()
             
             soup = BeautifulSoup(response.content, 'html.parser')
             
-            vix_value = None
+            dxy_value = None
             timestamp = datetime.now()
             
-            # Google Finance typically has the price in a specific div
-            price_elements = soup.find_all('div', {'data-last-price': True})
-            if price_elements:
-                try:
-                    vix_value = float(price_elements[0]['data-last-price'])
-                except:
-                    pass
+            # Look for price in common Investing.com selectors
+            price_selectors = [
+                '[data-test="instrument-price-last"]',
+                '.text-2xl',
+                '.instrument-price_last__JQN7_',
+                '#last_last',
+                '.pid-8827-last'
+            ]
             
-            # Alternative: look for price in text content
-            if not vix_value:
-                # Look for the main price display
-                price_divs = soup.find_all('div', class_=re.compile(r'.*price.*', re.IGNORECASE))
-                for div in price_divs:
-                    text = div.get_text().strip()
-                    match = re.search(r'(\d+\.?\d*)', text)
+            for selector in price_selectors:
+                elements = soup.select(selector)
+                for element in elements:
+                    text = element.get_text().strip()
+                    # Remove commas and extract number
+                    text = text.replace(',', '')
+                    match = re.search(r'(\d{2,3}\.\d{2,4})', text)
                     if match:
                         try:
                             value = float(match.group(1))
-                            if 5 <= value <= 100:
-                                vix_value = value
+                            if 70 <= value <= 150:
+                                dxy_value = value
                                 break
                         except:
                             continue
+                if dxy_value:
+                    break
             
             return {
-                'symbol': 'VIX',
-                'value': vix_value,
+                'symbol': 'DXY',
+                'value': dxy_value,
                 'timestamp': timestamp.isoformat(),
-                'source': 'Google Finance',
+                'source': 'Investing.com',
                 'url': url,
-                'status': 'success' if vix_value is not None else 'no_data'
+                'status': 'success' if dxy_value is not None else 'no_data'
             }
             
         except Exception as e:
             return {
-                'symbol': 'VIX',
+                'symbol': 'DXY',
                 'value': None,
                 'timestamp': datetime.now().isoformat(),
-                'source': 'Google Finance',
+                'source': 'Investing.com',
                 'url': url,
                 'status': 'error',
                 'error': str(e)
             }
 
-    def fetch_vix(self):
-        """Try multiple sources for VIX data"""
-        # Try TradingView first
-        result = self.fetch_vix_from_tradingview()
+    def fetch_dxy_from_yahoo(self):
+        """Alternative: Fetch DXY from Yahoo Finance"""
+        try:
+            url = "https://finance.yahoo.com/quote/DX-Y.NYB"
+            
+            response = self.session.get(url, timeout=30)
+            response.raise_for_status()
+            
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            dxy_value = None
+            timestamp = datetime.now()
+            
+            # Yahoo Finance price selectors
+            price_selectors = [
+                '[data-field="regularMarketPrice"]',
+                '.Fw\\(b\\).Fz\\(36px\\)',
+                '.Trsdu\\(0\\.3s\\)',
+                '[data-symbol="DX-Y.NYB"][data-field="regularMarketPrice"]'
+            ]
+            
+            for selector in price_selectors:
+                try:
+                    elements = soup.select(selector)
+                    for element in elements:
+                        text = element.get_text().strip()
+                        match = re.search(r'(\d{2,3}\.\d{2,4})', text)
+                        if match:
+                            value = float(match.group(1))
+                            if 70 <= value <= 150:
+                                dxy_value = value
+                                break
+                    if dxy_value:
+                        break
+                except:
+                    continue
+            
+            return {
+                'symbol': 'DXY',
+                'value': dxy_value,
+                'timestamp': timestamp.isoformat(),
+                'source': 'Yahoo Finance',
+                'url': url,
+                'status': 'success' if dxy_value is not None else 'no_data'
+            }
+            
+        except Exception as e:
+            return {
+                'symbol': 'DXY',
+                'value': None,
+                'timestamp': datetime.now().isoformat(),
+                'source': 'Yahoo Finance',
+                'url': url,
+                'status': 'error',
+                'error': str(e)
+            }
+
+    def fetch_dxy(self):
+        """Try multiple sources for DXY data"""
+        sources = [
+            self.fetch_dxy_from_tradingview,
+            self.fetch_dxy_from_yahoo,
+            self.fetch_dxy_from_investing
+        ]
         
-        # If TradingView fails, try Google Finance
-        if result['status'] != 'success':
-            print("TradingView failed, trying Google Finance...")
-            result = self.fetch_vix_from_google()
+        for source_func in sources:
+            try:
+                result = source_func()
+                if result['status'] == 'success':
+                    return result
+                else:
+                    print(f"{result['source']} failed, trying next source...")
+            except Exception as e:
+                print(f"Source failed with error: {e}")
+                continue
         
+        # If all sources fail, return the last result
         return result
 
     def save_to_supabase(self, data):
-        """Save VIX data to Supabase"""
+        """Save DXY data to Supabase"""
         if not self.supabase:
             print("Supabase not configured")
             return False
             
         try:
-            result = self.supabase.table("financial_indicators").upsert({
-                "indicator_type": "VIX",
+            result = self.supabase.table("indicators").upsert({
+                "indicator_type": "DXY",
                 "symbol": data['symbol'],
                 "value": data['value'],
                 "metadata": {
@@ -219,8 +289,8 @@ class VIXFetcher:
             print(f"Error saving to Supabase: {e}")
             return False
 
-    def save_to_file(self, data, filename="vix_data.json"):
-        """Save VIX data to local file"""
+    def save_to_file(self, data, filename="dxy_data.json"):
+        """Save DXY data to local file"""
         try:
             # Read existing data
             if os.path.exists(filename):
@@ -246,11 +316,11 @@ class VIXFetcher:
 
     def run(self):
         """Main execution function"""
-        print("Fetching VIX data...")
+        print("Fetching DXY (Dollar Index) data...")
         
-        data = self.fetch_vix()
+        data = self.fetch_dxy()
         
-        print(f"VIX Value: {data['value']}")
+        print(f"DXY Value: {data['value']}")
         print(f"Source: {data['source']}")
         print(f"Status: {data['status']}")
         print(f"Timestamp: {data['timestamp']}")
@@ -267,5 +337,5 @@ class VIXFetcher:
         return data
 
 if __name__ == "__main__":
-    fetcher = VIXFetcher()
+    fetcher = DXYFetcher()
     result = fetcher.run()

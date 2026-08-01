@@ -12,8 +12,8 @@ load_dotenv()
 
 class FearGreedFetcher:
     def __init__(self):
-        self.supabase_url = os.getenv("FINANCE_SUPABASE_URL")
-        self.supabase_key = os.getenv("FINANCE_SECRET_KEY") 
+        self.supabase_url = os.getenv("SUPABASE_URL")
+        self.supabase_key = os.getenv("SUPABASE_KEY") 
         if self.supabase_url and self.supabase_key:
             self.supabase = create_client(self.supabase_url, self.supabase_key)
         else:

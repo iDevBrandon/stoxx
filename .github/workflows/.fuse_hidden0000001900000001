@@ -15,8 +15,8 @@ jobs:
     timeout-minutes: 45
 
     env:
-      FINANCE_SUPABASE_URL: ${{ secrets.FINANCE_SUPABASE_URL }}
-      FINANCE_SECRET_KEY: ${{ secrets.FINANCE_SECRET_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
     steps:
       - name: Checkout repo
