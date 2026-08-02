@@ -1,41 +1,33 @@
-name: Stoxx — EPS History (Alpha Vantage)
+name: Stoxx — EPS History (SEC EDGAR)
 
-# Parallel shards: each job runs on its own GitHub runner (a distinct IP) with
-# its own Alpha Vantage key and its own 25-ticker slice of the pending universe.
-# 4 keys × 25 = 100 new tickers per run. Alpha Vantage caps each key at 25/day,
-# so this pulls ~100/day — a daily schedule walks the top-500 in ~5 days.
-#
-# Keys live here (not in Secrets) on purpose — they're disposable free AV keys.
-# Keep this repo PRIVATE, and rotate them if it ever goes public.
-# To go faster, add more { key, offset } rows (offset grows by 25 each).
+# Deep Basic EPS (annual + quarterly) from the SEC XBRL companyconcept API.
+# Free, no key, no daily cap. US filers only — non-US tickers are skipped with
+# no network call. Universe is split into 4 disjoint stride shards run in
+# parallel (each on its own runner IP). Resume-skip continues across runs.
 
 on:
-  workflow_dispatch:            # manual "Run workflow" button
+  workflow_dispatch:
   schedule:
     - cron: "0 6 * * *"         # daily 06:00 UTC
 
 jobs:
   eps:
-    name: EPS shard (offset ${{ matrix.offset }})
+    name: EPS shard ${{ matrix.shard }}/4
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     strategy:
-      fail-fast: false          # one shard failing must not cancel the others
+      fail-fast: false
       max-parallel: 4
       matrix:
-        include:
-          - { key: BM5S4VA266LYHYCX, offset: 0 }
-          - { key: 94GPDJ120V7O2XHF, offset: 25 }
-          - { key: SEVGMAKW4KDEK4FN, offset: 50 }
-          - { key: TI8S0OWPPLOG279J, offset: 75 }
+        shard: [0, 1, 2, 3]
 
     env:
       FINANCE_SUPABASE_URL: ${{ secrets.FINANCE_SUPABASE_URL }}
       FINANCE_SECRET_KEY:   ${{ secrets.FINANCE_SECRET_KEY }}
-      ALPHAVANTAGE_API_KEY: ${{ matrix.key }}
-      EPS_OFFSET:           ${{ matrix.offset }}
-      EPS_LIMIT:            "25"
-      EPS_SLEEP:            "13"
+      EPS_SHARD:            ${{ matrix.shard }}
+      EPS_SHARDS:           "4"
+      EPS_LIMIT:            "3000"
+      EPS_SLEEP:            "0.5"
 
     steps:
       - name: Checkout repo
@@ -56,4 +48,4 @@ jobs:
 
       - name: Notify on failure
         if: failure()
-        run: echo "::error::EPS shard (offset ${{ matrix.offset }}) failed — check logs above"
+        run: echo "::error::EPS shard ${{ matrix.shard }} failed — check logs above"

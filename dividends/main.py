@@ -1,38 +1,45 @@
 """
-Dividend history crawler — Alpha Vantage edition.
+Dividend history crawler — yfinance edition.
 
-Alpha Vantage's DIVIDENDS endpoint uniquely returns the full payment calendar
-(ex-date, declaration, record, and PAYMENT date) that yfinance lacks. For each
-company this script:
-  * upserts every payment into the granular `dividend_history` table
-  * recomputes a per-ticker summary (yearly totals, CAGR, growth streak) into
-    the `dividends` table
+Pulls the FULL dividend history from Yahoo Finance (deep, unlike its income
+statements) for each ticker in global500.csv and upserts:
+  * every payment into `dividend_history` — raw amount + split-adjusted amount,
+    inferred payout frequency, and a special-dividend flag
+  * a per-ticker summary into `dividends` — frequency, TTM, forward yield,
+    3y/5y CAGR, growth streak, and yearly totals
+
+Free, no API key, no daily cap. Yahoo can throttle a single IP if hammered, so
+we sleep between tickers and spread the universe across parallel shards.
+
+RESUME-SKIP: each run skips tickers already in dividend_history (via the
+dividend_history_tickers view) plus known-empty symbols (.div_empty.txt).
+SHARDING: DIV_SHARD / DIV_SHARDS split the universe into disjoint strides.
 
 Env (.env locally / GitHub Actions secrets):
-  ALPHAVANTAGE_API_KEY   Alpha Vantage key (required — "demo" only works for a
-                         couple of symbols)
   FINANCE_SUPABASE_URL   Supabase project URL
   FINANCE_SECRET_KEY     Supabase SECRET key (sb_secret_…) — needed for writes
-  DIV_LIMIT              max tickers this run (default 500 = top-500 universe)
-  DIV_SLEEP              seconds between API calls (default 1.0)
+  DIV_LIMIT              tickers to process this run (default 500)
+  DIV_YEARS              keep only the last N years of payments (default 0 = all)
+  DIV_SLEEP              seconds between tickers (default 1.0)
+  DIV_CSV               universe csv (default global500.csv)
+  DIV_SHARD/DIV_SHARDS   stride shard index / count (default 0 / 1)
+  DIV_TICKERS            explicit tickers to (re)fetch — bypasses CSV + resume
+  DIV_SKIP_FILE          local file of no-dividend symbols (default .div_empty.txt)
 
-  pip install -r requirements.txt
-  python main.py
+  pip install -r requirements.txt   # yfinance, pandas, supabase, python-dotenv
+  python main.py                    # run from the stoxx/ root
 """
 import os
 import time
 from datetime import datetime, timezone
 
 import pandas as pd
-import requests
+import yfinance as yf
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
 load_dotenv()
 
-ALPHAVANTAGE_API_KEY = os.getenv("ALPHAVANTAGE_API_KEY", "demo")
-# Supabase new-style keys (sb_publishable_… / sb_secret_…). Writes need the
-# SECRET key — the publishable key is blocked by RLS from inserting.
 SUPABASE_URL = os.getenv("FINANCE_SUPABASE_URL")
 SUPABASE_KEY = os.getenv("FINANCE_SECRET_KEY")
 if not SUPABASE_URL or not SUPABASE_KEY:
@@ -40,175 +47,223 @@ if not SUPABASE_URL or not SUPABASE_KEY:
         "Missing Supabase creds. Set FINANCE_SUPABASE_URL and the SECRET key "
         "FINANCE_SECRET_KEY (sb_secret_…) in .env."
     )
-DIV_LIMIT = int(os.getenv("DIV_LIMIT", "500"))  # top-500 universe
+DIV_LIMIT = int(os.getenv("DIV_LIMIT", "500"))
+DIV_YEARS = int(os.getenv("DIV_YEARS", "0"))     # 0 = keep full history
 DIV_SLEEP = float(os.getenv("DIV_SLEEP", "1.0"))
-
-AV_URL = "https://www.alphavantage.co/query"
-CSV_FILE = os.getenv("DIV_CSV", "global500.csv")
+DIV_CSV = os.getenv("DIV_CSV", "global500.csv")
+DIV_SHARD = int(os.getenv("DIV_SHARD", "0"))
+DIV_SHARDS = int(os.getenv("DIV_SHARDS", "1"))
+DIV_TICKERS = os.getenv("DIV_TICKERS", "").strip()
+DIV_SKIP_FILE = os.getenv(
+    "DIV_SKIP_FILE", os.path.join(os.path.dirname(__file__), ".div_empty.txt")
+)
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
-class RateLimited(Exception):
-    pass
+# ---- dividend math (from the tested dividend_history.py) ----
+def _naive(idx):
+    return idx.tz_localize(None) if getattr(idx, "tz", None) is not None else idx
 
 
-def clean_date(v):
-    """AV uses 'None'/'' for missing dates — normalise to a real None."""
-    if v is None:
-        return None
-    s = str(v).strip()
-    return None if s.lower() in ("none", "null", "") else s
-
-
-def fetch_av_dividends(ticker: str) -> list:
-    """Dividend rows from Alpha Vantage (newest first), or [] if none.
-    Raises RateLimited when the key is throttled."""
-    resp = requests.get(
-        AV_URL,
-        params={
-            "function": "DIVIDENDS",
-            "symbol": ticker,
-            "apikey": ALPHAVANTAGE_API_KEY,
-        },
-        timeout=30,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    # AV returns these keys instead of `data` when something's wrong.
-    if "Information" in data or "Note" in data:
-        raise RateLimited(data.get("Information") or data.get("Note"))
-    if "Error Message" in data:
-        return []
-    return data.get("data") or []
-
-
-def infer_frequency(ex_dates) -> str:
-    dts = sorted(pd.to_datetime([d for d in ex_dates if clean_date(d)]).tolist())
-    if len(dts) < 2:
-        return "annual"
-    median_gap = float(pd.Series(dts).diff().dropna().dt.days.median())
-    if median_gap <= 45:
+def days_to_frequency(median_days: float) -> str:
+    if median_days <= 45:
         return "monthly"
-    if median_gap <= 135:
+    if median_days <= 135:
         return "quarterly"
-    if median_gap <= 270:
+    if median_days <= 270:
         return "semiannual"
     return "annual"
 
 
-def build_rows(ticker: str, av_rows: list, freq: str) -> list:
-    amounts = [
-        float(x["amount"])
-        for x in av_rows
-        if x.get("amount") not in (None, "", "None")
-    ]
-    median_amt = pd.Series(amounts).median() if amounts else 0.0
-
-    rows = []
-    now = datetime.now(timezone.utc).isoformat()
-    for x in av_rows:
-        amt = x.get("amount")
-        ex = clean_date(x.get("ex_dividend_date"))
-        if amt in (None, "", "None") or not ex:
-            continue
-        amt = float(amt)
-        is_special = median_amt > 0 and amt > 2.5 * median_amt
-        rows.append({
-            "ticker": ticker,
-            "ex_date": ex,
-            "amount": amt,
-            "pay_date": clean_date(x.get("payment_date")),
-            "record_date": clean_date(x.get("record_date")),
-            "declaration_date": clean_date(x.get("declaration_date")),
-            "frequency": "special" if is_special else freq,
-            "is_special": bool(is_special),
-            "currency": "USD",
-            "source": "alphavantage",
-            "updated_at": now,
-        })
-    return rows
+def payments_per_year(freq: str) -> int:
+    return {"monthly": 12, "quarterly": 4, "semiannual": 2, "annual": 1}.get(freq, 4)
 
 
-def summarize(ticker, name, country, rows) -> dict:
-    """Yearly totals + CAGR + growth streak for the `dividends` summary table."""
-    cagr3 = cagr5 = None
-    streak = 0
-    history = {}
-    if rows:
-        df = pd.DataFrame(rows)
-        df["year"] = pd.to_datetime(df["ex_date"]).dt.year
-        yearly = df.groupby("year")["amount"].sum()
-        history = {str(int(y)): round(float(v), 4) for y, v in yearly.items()}
-        complete = yearly[yearly.index < datetime.now().year]  # skip partial year
+def fetch_dividends(ticker: str):
+    """(rows, summary) from yfinance, or ([], {}) when there are no dividends."""
+    t = yf.Ticker(ticker)
+    divs = t.dividends                     # None for delisted / unknown symbols
+    if divs is None or getattr(divs, "empty", True):
+        return [], {}
+    divs = divs.dropna()
+    if divs.empty:
+        return [], {}
+    divs.index = _naive(divs.index)
 
-        def cagr(years):
-            if len(complete) <= years or complete.iloc[-1 - years] <= 0:
-                return None
-            start, end = complete.iloc[-1 - years], complete.iloc[-1]
-            return round((end / start) ** (1 / years) - 1, 4)
+    currency, price = "USD", None
+    try:
+        fi = t.fast_info
+        currency = (fi.get("currency") if hasattr(fi, "get") else fi["currency"]) or "USD"
+        price = float(fi.get("last_price") if hasattr(fi, "get") else fi["last_price"]) or None
+    except Exception:
+        pass
 
-        cagr3, cagr5 = cagr(3), cagr(5)
-        for i in range(len(complete) - 1, 0, -1):
-            if complete.iloc[i] > complete.iloc[i - 1]:
-                streak += 1
-            else:
-                break
+    df = divs.to_frame("amount")
+    df["ex_date"] = df.index
+    df = df.sort_values("ex_date").reset_index(drop=True)
+    # yfinance dividends are already split-adjusted (back-adjusted to today's
+    # share basis), so the adjusted series equals the raw yfinance amounts.
+    df["adj_amount"] = df["amount"]
 
-    return {
+    gaps = df["ex_date"].diff().dropna().dt.days
+    freq = days_to_frequency(float(gaps.median()) if not gaps.empty else 365.0)
+
+    # special-dividend heuristic: far above the trailing regular median
+    med = df["amount"].rolling(8, min_periods=3).median().bfill()
+    df["is_special"] = df["amount"] > (2.5 * med)
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    rows = [{
         "ticker": ticker,
-        "name": name,
-        "country": country,
-        "dividend_cagr_3yr": cagr3,
-        "dividend_cagr_5yr": cagr5,
+        "ex_date": ex.date().isoformat(),
+        "amount": round(float(amt), 6),
+        "adjusted_amount": round(float(adj), 6),
+        "frequency": "special" if sp else freq,
+        "is_special": bool(sp),
+        "currency": currency,
+        "source": "yfinance",
+        "updated_at": now_iso,
+    } for ex, amt, adj, sp in zip(df["ex_date"], df["amount"], df["adj_amount"], df["is_special"])]
+
+    # ---- summary (regular payments only) ----
+    reg = df[~df["is_special"]].copy()
+    if reg.empty:
+        reg = df.copy()
+    now = pd.Timestamp.today()
+    ttm = float(reg[reg["ex_date"] > now - pd.Timedelta(days=365)]["amount"].sum())
+    last_amt = float(reg["amount"].iloc[-1])
+    fwd_annual = last_amt * payments_per_year(freq)
+    yld = (fwd_annual / price * 100) if price else None
+
+    reg["year"] = reg["ex_date"].dt.year
+    annual = reg.groupby("year")["adj_amount"].sum()
+    complete = annual[annual.index < now.year]
+    # Growth streak: year-over-year dividend sum, but only across years with the
+    # ticker's normal payment count — skip ex-date-drift years (an extra/missing
+    # payment) that otherwise break long streaks (e.g. KO 2001 had 5 payments).
+    yr_cnt = reg.groupby("year")["amount"].count()
+    modal_cnt = int(yr_cnt.mode().iloc[0]) if not yr_cnt.empty else 0
+    clean_years = annual[yr_cnt == modal_cnt]
+    clean_years = clean_years[clean_years.index < now.year]
+
+    def cagr(series, years):
+        # RATIO (e.g. 0.0512 = 5.12%) — matches the DividendHeatmap, which
+        # thresholds at 0.15 and multiplies by 100 for display.
+        if len(series) <= years or series.iloc[-1 - years] <= 0:
+            return None
+        start, end = float(series.iloc[-1 - years]), float(series.iloc[-1])
+        return round((end / start) ** (1 / years) - 1, 4)
+
+    streak = 0
+    for i in range(len(clean_years) - 1, 0, -1):
+        if clean_years.iloc[i] > clean_years.iloc[i - 1]:
+            streak += 1
+        else:
+            break
+
+    summary = {
+        "frequency": freq,
+        "last_amount": round(last_amt, 4),
+        "ttm_dividend": round(ttm, 4),
+        "forward_annual": round(fwd_annual, 4),
+        "yield_pct": round(yld, 2) if yld else None,
+        "dividend_cagr_3yr": cagr(complete, 3),
+        "dividend_cagr_5yr": cagr(complete, 5),
         "consecutive_growth_years": streak,
-        "total_dividends_history": history,
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "total_dividends_history": {str(int(y)): round(float(v), 4) for y, v in annual.items()},
     }
+    return rows, summary
+
+
+def fetch_done_tickers() -> set:
+    res = supabase.table("dividend_history_tickers").select("ticker").execute()
+    return {r["ticker"] for r in (res.data or [])}
+
+
+def load_skip_empty() -> set:
+    try:
+        with open(DIV_SKIP_FILE) as f:
+            return {ln.strip() for ln in f if ln.strip()}
+    except FileNotFoundError:
+        return set()
+
+
+def mark_empty(ticker: str) -> None:
+    with open(DIV_SKIP_FILE, "a") as f:
+        f.write(ticker + "\n")
 
 
 def main():
-    df = pd.read_csv(CSV_FILE).rename(columns={"Symbol": "Ticker"})
-    universe = df[["Ticker", "Name", "country"]].head(DIV_LIMIT)
-    key_tail = ALPHAVANTAGE_API_KEY[-4:] if ALPHAVANTAGE_API_KEY else "----"
-    print(
-        f"Crawling dividends for {len(universe)} tickers via Alpha Vantage "
-        f"(sleep {DIV_SLEEP}s, key ...{key_tail})\n"
-    )
+    if DIV_TICKERS:
+        names = [t.strip().upper() for t in DIV_TICKERS.split(",") if t.strip()]
+        batch = pd.DataFrame({"Ticker": names, "Name": names, "country": None})
+        print(f"Explicit tickers (bypassing resume-skip): {', '.join(names)}\n")
+    else:
+        df = pd.read_csv(DIV_CSV).rename(columns={"Symbol": "Ticker"})
+        cols = [c for c in ("Ticker", "Name", "country") if c in df.columns]
+        df = df[cols]
+        if "country" not in df.columns:
+            df["country"] = None
+        if DIV_SHARDS > 1:                        # disjoint stride for this shard
+            df = df.iloc[DIV_SHARD::DIV_SHARDS]
+        done = fetch_done_tickers()
+        skip_empty = load_skip_empty()
+        pending = df[~df["Ticker"].isin(done | skip_empty)].reset_index(drop=True)
+        batch = pending.head(DIV_LIMIT)
+
+        print(
+            f"Shard {DIV_SHARD}/{DIV_SHARDS} · this shard's rows {len(df)} · "
+            f"already seeded {len(done)} · pending here {len(pending)}"
+        )
+        if batch.empty:
+            print("✅ Nothing left for this shard — its partition is fully seeded.")
+            return
+        print(f"Processing {len(batch)} tickers via yfinance, sleep {DIV_SLEEP}s\n")
+
+    cutoff = None
+    if DIV_YEARS > 0:
+        y = datetime.now(timezone.utc)
+        cutoff = f"{y.year - DIV_YEARS:04d}-{y.month:02d}-{y.day:02d}"
 
     ok = empty = failed = 0
-    for i, row in universe.iterrows():
-        ticker, name, country = row["Ticker"], row["Name"], row.get("country")
-        print(f"[{i + 1}/{len(universe)}] {ticker} ({name})")
+    rows_iter = list(batch.itertuples(index=False))
+    for i, r in enumerate(rows_iter):
+        ticker = r.Ticker
+        name = getattr(r, "Name", ticker)
+        country = getattr(r, "country", None)
+        print(f"[{i + 1}/{len(rows_iter)}] {ticker} ({name})")
         try:
-            av = fetch_av_dividends(ticker)
-        except RateLimited as e:
-            print(f"  ⛔ Alpha Vantage rate limit: {e}")
-            print("  Stopping — resume later, or raise DIV_LIMIT with a premium key.")
-            break
+            rows, summary = fetch_dividends(ticker)
         except Exception as e:
             print(f"  ❌ fetch failed: {e}")
             failed += 1
             time.sleep(DIV_SLEEP)
             continue
 
-        if not av:
+        if not rows:
             print("  ℹ️ no dividends")
+            mark_empty(ticker)
             empty += 1
             time.sleep(DIV_SLEEP)
             continue
 
-        freq = infer_frequency([r.get("ex_dividend_date") for r in av])
-        rows = build_rows(ticker, av, freq)
+        if cutoff:
+            rows = [x for x in rows if x["ex_date"] >= cutoff]
+
         try:
             if rows:
                 supabase.table("dividend_history").upsert(
                     rows, on_conflict="ticker,ex_date"
                 ).execute()
-            supabase.table("dividends").upsert(
-                summarize(ticker, name, country, rows), on_conflict="ticker"
-            ).execute()
-            print(f"  ✅ {len(rows)} payments · {freq}")
+            summary.update({
+                "ticker": ticker, "name": name, "country": country,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            })
+            supabase.table("dividends").upsert(summary, on_conflict="ticker").execute()
+            n_special = sum(1 for x in rows if x["is_special"])
+            print(f"  ✅ {len(rows)} payments · {summary['frequency']}"
+                  + (f" · {n_special} special" if n_special else ""))
             ok += 1
         except Exception as e:
             print(f"  ❌ upsert failed: {e}")

@@ -264,3 +264,13 @@ To run these fetchers regularly, you can use cron:
 - Multiple fallback sources are implemented where possible
 - Data is validated within reasonable ranges for each indicator
 - Scripts handle errors gracefully and continue execution
+
+## EPS
+
+just run
+
+```bash
+cd /Users/brandonha/Documents/GitHub/oxinion/oxinion-finance/stoxx
+source venv/bin/activate
+EPS_LIMIT=500 python eps/main.py
+```

@@ -1,47 +1,44 @@
 """
-EPS history crawler — Alpha Vantage EARNINGS edition.
+EPS history crawler — SEC EDGAR (XBRL) edition.
 
-Alpha Vantage's EARNINGS endpoint returns deep reported-EPS history for both
-annual and quarterly periods, and for quarters also the analyst estimate +
-surprise. This script upserts it all into the `eps_history` table.
+Pulls deep Basic EPS history (annual + quarterly) from the SEC's XBRL
+`companyconcept` API for each ticker in global500.csv and upserts into the
+`eps_history` table.
 
-NOTE: use the primary listing symbol — e.g. GOOGL, not GOOG (some share
-classes / lowercase symbols return empty).
+Why SEC EDGAR: free, no API key, no daily cap, official filer data going back
+~15+ years (XBRL mandate, 2009+). US SEC filers only — a ticker not in SEC's
+ticker→CIK map is skipped instantly with NO network call, so a global universe
+naturally reduces to its US names.
 
-RESUME-SKIP: each run skips tickers already in `eps_history` (via the
-`eps_history_tickers` view) plus known-empty symbols (local .eps_empty.txt),
-and processes only the next EPS_LIMIT *unseen* tickers. So you can run it
-repeatedly — with a fresh key each time — and it walks straight through the
-universe without repeating work.
+Concept: us-gaap:EarningsPerShareBasic (falls back to
+EarningsPerShareBasicAndDiluted). Period type is inferred from the XBRL
+duration: ~365 days = annual, ~90 days = quarterly; 6-/9-month YTD figures are
+skipped. (Note: SEC 10-Qs file Q1–Q3 only, so standalone Q4 quarters are not
+available from this source.)
 
-KEY ROTATION: ALPHAVANTAGE_API_KEY may be a comma-separated list. When a key
-hits its Alpha Vantage daily cap, the crawler rotates to the next key and
-retries the same ticker — so N keys ≈ N × 25 tickers in a single run.
+RESUME-SKIP: each run skips tickers already in eps_history (via the
+eps_history_tickers view) plus known-skip symbols (local .eps_empty.txt — this
+also remembers non-US tickers so they're never re-checked).
+
+SHARDING: EPS_SHARD / EPS_SHARDS split the universe into disjoint strides for
+parallel jobs (shard 0 = rows 0,4,8…). No overlap, ever.
 
 Env (.env locally / GitHub Actions secrets):
-  ALPHAVANTAGE_API_KEY   Alpha Vantage key — one, or comma-separated list
   FINANCE_SUPABASE_URL   Supabase project URL
   FINANCE_SECRET_KEY     Supabase SECRET key (sb_secret_…) — needed for writes
-  EPS_LIMIT              NEW (unseen) tickers to process this run (default 25)
-  EPS_SLEEP              seconds between API calls (default 13 → under AV's
-                         5-requests-per-minute limit; lower only for tiny tests)
+  EPS_LIMIT              tickers to process this run (default 500)
+  EPS_SLEEP              seconds between SEC calls (default 0.5 → under 10/s)
   EPS_CSV               universe csv (default global500.csv)
-  EPS_SKIP_FILE         local file of known-empty symbols (default .eps_empty.txt)
-
-Examples:
-  # one key, next 25 unseen tickers
-  ALPHAVANTAGE_API_KEY=KEY1 EPS_LIMIT=25 python eps/main.py
-  # five keys, next 125 unseen tickers in one run
-  ALPHAVANTAGE_API_KEY=K1,K2,K3,K4,K5 EPS_LIMIT=125 python eps/main.py
-  # test/refresh one specific ticker (ignores resume-skip)
-  EPS_TICKERS=META python eps/main.py
+  EPS_SHARD/EPS_SHARDS   stride shard index / count (default 0 / 1)
+  EPS_TICKERS            explicit tickers to (re)fetch — bypasses CSV + resume
+  EPS_UA                 User-Agent for SEC (SEC requires a contact address)
+  EPS_SKIP_FILE          local file of skip symbols (default .eps_empty.txt)
 
   pip install -r requirements.txt   # requests, pandas, supabase, python-dotenv
   python main.py                    # run from the stoxx/ root
 """
 import os
 import time
-from collections import Counter
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -51,10 +48,6 @@ from supabase import Client, create_client
 
 load_dotenv()
 
-# One key, or a comma-separated list — the crawler rotates on daily-cap.
-AV_KEYS = [k.strip() for k in os.getenv("ALPHAVANTAGE_API_KEY", "demo").split(",") if k.strip()] or ["demo"]
-# Supabase new-style keys (sb_publishable_… / sb_secret_…). Writes need the
-# SECRET key — the publishable key is blocked by RLS from inserting.
 SUPABASE_URL = os.getenv("FINANCE_SUPABASE_URL")
 SUPABASE_KEY = os.getenv("FINANCE_SECRET_KEY")
 if not SUPABASE_URL or not SUPABASE_KEY:
@@ -62,151 +55,181 @@ if not SUPABASE_URL or not SUPABASE_KEY:
         "Missing Supabase creds. Set FINANCE_SUPABASE_URL and the SECRET key "
         "FINANCE_SECRET_KEY (sb_secret_…) in .env."
     )
-EPS_LIMIT = int(os.getenv("EPS_LIMIT", "25"))   # NEW (unseen) tickers per run
-EPS_OFFSET = int(os.getenv("EPS_OFFSET", "0"))  # skip first N pending — lets
-# parallel GitHub Actions shards each take a distinct 25-ticker slice.
-EPS_SLEEP = float(os.getenv("EPS_SLEEP", "13"))  # ≥12s keeps under AV's 5/min
+EPS_LIMIT = int(os.getenv("EPS_LIMIT", "500"))
+EPS_YEARS = int(os.getenv("EPS_YEARS", "10"))   # keep only the last N years (0 = all)
+EPS_SLEEP = float(os.getenv("EPS_SLEEP", "0.5"))
 EPS_CSV = os.getenv("EPS_CSV", "global500.csv")
-# Explicit tickers to (re)fetch, comma-separated — bypasses the CSV AND the
-# resume-skip, so you can test/refresh a single symbol: EPS_TICKERS=META
+EPS_SHARD = int(os.getenv("EPS_SHARD", "0"))
+EPS_SHARDS = int(os.getenv("EPS_SHARDS", "1"))
 EPS_TICKERS = os.getenv("EPS_TICKERS", "").strip()
 EPS_SKIP_FILE = os.getenv(
     "EPS_SKIP_FILE", os.path.join(os.path.dirname(__file__), ".eps_empty.txt")
 )
+# SEC requires a descriptive User-Agent with a contact address.
+HEADERS = {"User-Agent": os.getenv("EPS_UA", "oxinion-finance eps-crawler (idevbrandon@gmail.com)")}
 
-AV_URL = "https://www.alphavantage.co/query"
+SEC_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
+SEC_CONCEPT_URL = "https://data.sec.gov/api/xbrl/companyconcept/CIK{cik:010d}/us-gaap/{concept}.json"
+CONCEPTS = ["EarningsPerShareBasic", "EarningsPerShareBasicAndDiluted"]
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
-class RateLimited(Exception):
-    pass
+def fetch_cik_map() -> dict:
+    """SEC ticker → CIK map (US filers only). Keys are uppercased tickers."""
+    r = requests.get(SEC_TICKERS_URL, headers=HEADERS, timeout=30)
+    r.raise_for_status()
+    return {row["ticker"].upper(): int(row["cik_str"]) for row in r.json().values()}
 
 
-def num(v):
-    """AV returns strings and 'None' for missing values — parse to float|None."""
-    if v is None:
+def lookup_cik(cik_map: dict, ticker: str):
+    """Match a CSV ticker to SEC's CIK, tolerating . vs - share-class suffixes."""
+    up = ticker.upper()
+    for cand in (up, up.replace(".", "-"), up.replace("-", ".")):
+        if cand in cik_map:
+            return cik_map[cand]
+    return None
+
+
+def _fetch_concept(cik: int, concept: str):
+    r = requests.get(SEC_CONCEPT_URL.format(cik=cik, concept=concept), headers=HEADERS, timeout=30)
+    if r.status_code == 404:
         return None
-    s = str(v).strip()
-    if s.lower() in ("none", "null", ""):
-        return None
+    r.raise_for_status()
+    return r.json()
+
+
+def fetch_splits(ticker: str) -> dict:
+    """{split_date(Timestamp): ratio} from yfinance, or {} if none/unavailable.
+    Splits are rare, so most tickers return {} and need no adjustment."""
     try:
-        return float(s)
-    except ValueError:
-        return None
+        import yfinance as yf
+        s = yf.Ticker(ticker).splits
+        if s is None or getattr(s, "empty", True):
+            return {}
+        s = s[s > 0]
+        return {pd.Timestamp(d).tz_localize(None): float(r) for d, r in s.items()}
+    except Exception:
+        return {}
 
 
-def fetch_av_earnings(ticker: str, api_key: str) -> dict:
-    """{'annualEarnings': [...], 'quarterlyEarnings': [...]} from Alpha Vantage.
-    Raises RateLimited when the key is throttled."""
-    resp = requests.get(
-        AV_URL,
-        params={
-            "function": "EARNINGS",
-            "symbol": ticker.upper(),
-            "apikey": api_key,
-        },
-        timeout=30,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    if "Information" in data or "Note" in data:
-        raise RateLimited(data.get("Information") or data.get("Note"))
-    return data
+def adjust_eps(raw: float, filed: str, splits: dict) -> float:
+    """Restate an EPS value to today's share basis: divide by every split that
+    happened AFTER the filing that reported it (splits before are already in)."""
+    if not splits or not filed:
+        return raw
+    filed_ts = pd.Timestamp(filed)
+    factor = 1.0
+    for split_date, ratio in splits.items():
+        if split_date > filed_ts:
+            factor *= ratio
+    return round(raw / factor, 4) if factor else raw
 
 
-def clean_date(v):
-    """AV date fields are 'YYYY-MM-DD' strings, or 'None'/'' when missing."""
-    if v is None:
-        return None
-    s = str(v).strip()
-    return s if s and s.lower() not in ("none", "null") else None
-
-
-def clean_text(v):
-    if v is None:
-        return None
-    s = str(v).strip()
-    return s if s and s.lower() not in ("none", "null") else None
-
-
-def build_rows(ticker: str, data: dict) -> list:
-    """Store the Alpha Vantage EARNINGS record VERBATIM — AV's own field names.
-
-    AV annualEarnings item:     {fiscalDateEnding, reportedEPS}
-    AV quarterlyEarnings item:  {fiscalDateEnding, reportedDate, reportedEPS,
-                                 estimatedEPS, surprise, surprisePercentage,
-                                 reportTime}
-
-    We keep those exact names as the column names. `period_type` (annual /
-    quarterly) marks which AV array each row came from — the only added field,
-    since AV returns the two arrays separately and a ticker can share the same
-    fiscalDateEnding across both (e.g. IBM 2026-06-30 appears in each)."""
+def build_rows(ticker: str, cik: int) -> list:
+    """Deep Basic EPS (annual + quarterly) from SEC XBRL for one filer."""
     now = datetime.now(timezone.utc).isoformat()
+    data = None
+    for concept in CONCEPTS:
+        data = _fetch_concept(cik, concept)
+        if data and data.get("units"):
+            break
+    if not data or not data.get("units"):
+        return []
+
+    entries = []
+    for vals in data["units"].values():          # usually "USD/shares"
+        entries.extend(vals)
+
+    # dedupe by (period_type, period_end), keeping the latest-filed value
+    seen = {}
+    for e in entries:
+        end, start, val = e.get("end"), e.get("start"), e.get("val")
+        form, filed = e.get("form", ""), e.get("filed", "")
+        if not (end and start) or val is None:
+            continue
+        if not (form.startswith("10-K") or form.startswith("10-Q")):
+            continue
+        dur = (datetime.fromisoformat(end) - datetime.fromisoformat(start)).days
+        if 330 <= dur <= 400:
+            period_type = "annual"
+        elif 80 <= dur <= 100:
+            period_type = "quarterly"
+        else:
+            continue                              # skip 6-/9-month YTD figures
+        key = (period_type, end)
+        if key not in seen or filed >= seen[key]["filed"]:
+            seen[key] = {"val": val, "filed": filed, "period_type": period_type, "end": end}
+
+    # keep only the last EPS_YEARS years (string compare on YYYY-MM-DD is fine)
+    if EPS_YEARS > 0:
+        now_dt = datetime.now(timezone.utc)
+        cutoff = f"{now_dt.year - EPS_YEARS:04d}-{now_dt.month:02d}-{now_dt.day:02d}"
+        seen = {k: v for k, v in seen.items() if v["end"] >= cutoff}
+
+    if not seen:
+        return []
+
+    splits = fetch_splits(ticker)   # {} for the vast majority (no splits)
+    return [{
+        "ticker": ticker,
+        "period_type": v["period_type"],
+        "fiscalDateEnding": v["end"],
+        "basicEPS": float(v["val"]),                              # as-reported
+        "adjustedBasicEPS": adjust_eps(float(v["val"]), v["filed"], splits),
+        "source": "sec",
+        "updated_at": now,
+    } for v in seen.values()]
+
+
+def build_rows_yf(ticker: str) -> list:
+    """Fallback: Basic EPS (annual + quarterly) from yfinance income statements.
+    Shallow (~4 annual, ~5 quarterly) but covers non-US names SEC doesn't have.
+    yfinance EPS is already in current share terms, so adjusted == raw."""
+    now = datetime.now(timezone.utc).isoformat()
+    import yfinance as yf
+    t = yf.Ticker(ticker)
+    cutoff = None
+    if EPS_YEARS > 0:
+        y = datetime.now(timezone.utc)
+        cutoff = f"{y.year - EPS_YEARS:04d}-{y.month:02d}-{y.day:02d}"
+
     rows = []
-
-    # AV's annualEarnings mixes a PARTIAL mid-year stub (a recent quarter-end
-    # carrying year-to-date EPS, e.g. META 2026-06-30=13.49) in with the real
-    # fiscal years (2025-12-31=29.70, …). Real years share one fiscal month, so
-    # keep only entries in the dominant month and drop the stub.
-    annual = data.get("annualEarnings") or []
-    annual_months = [
-        clean_date(e.get("fiscalDateEnding"))[5:7]
-        for e in annual
-        if clean_date(e.get("fiscalDateEnding")) and num(e.get("reportedEPS")) is not None
-    ]
-    fiscal_month = Counter(annual_months).most_common(1)[0][0] if annual_months else None
-
-    for e in annual:
-        fiscalDateEnding = clean_date(e.get("fiscalDateEnding"))
-        reportedEPS = num(e.get("reportedEPS"))
-        if not fiscalDateEnding or reportedEPS is None:
+    for period_type, stmt in (("annual", t.income_stmt), ("quarterly", t.quarterly_income_stmt)):
+        if stmt is None or getattr(stmt, "empty", True):
             continue
-        if fiscalDateEnding[5:7] != fiscal_month:
-            continue                      # AV partial mid-year stub — skip
-        rows.append({
-            "ticker": ticker,
-            "period_type": "annual",
-            "fiscalDateEnding": fiscalDateEnding,
-            "reportedEPS": reportedEPS,
-            "reportedDate": None,          # AV gives these only for quarters
-            "estimatedEPS": None,
-            "surprise": None,
-            "surprisePercentage": None,
-            "reportTime": None,
-            "source": "alphavantage",
-            "updated_at": now,
-        })
-
-    for e in data.get("quarterlyEarnings") or []:
-        fiscalDateEnding = clean_date(e.get("fiscalDateEnding"))
-        reportedEPS = num(e.get("reportedEPS"))
-        if not fiscalDateEnding or reportedEPS is None:  # skip not-yet-reported
+        eps_row = None
+        for row_name in stmt.index:
+            if "basic eps" in str(row_name).lower():
+                eps_row = stmt.loc[row_name]
+                break
+        if eps_row is None:
             continue
-        rows.append({
-            "ticker": ticker,
-            "period_type": "quarterly",
-            "fiscalDateEnding": fiscalDateEnding,
-            "reportedEPS": reportedEPS,
-            "reportedDate": clean_date(e.get("reportedDate")),
-            "estimatedEPS": num(e.get("estimatedEPS")),
-            "surprise": num(e.get("surprise")),
-            "surprisePercentage": num(e.get("surprisePercentage")),
-            "reportTime": clean_text(e.get("reportTime")),
-            "source": "alphavantage",
-            "updated_at": now,
-        })
+        for period_end, value in eps_row.items():
+            if value is None or pd.isna(value):
+                continue
+            fde = pd.Timestamp(period_end).date().isoformat()
+            if cutoff and fde < cutoff:
+                continue
+            v = float(value)
+            rows.append({
+                "ticker": ticker,
+                "period_type": period_type,
+                "fiscalDateEnding": fde,
+                "basicEPS": v,
+                "adjustedBasicEPS": v,   # yfinance already current-share terms
+                "source": "yfinance",
+                "updated_at": now,
+            })
     return rows
 
 
 def fetch_done_tickers() -> set:
-    """Tickers already seeded in eps_history (via the distinct-ticker view)."""
     res = supabase.table("eps_history_tickers").select("ticker").execute()
     return {r["ticker"] for r in (res.data or [])}
 
 
 def load_skip_empty() -> set:
-    """Symbols we've already seen return no EPS data — don't waste calls on them."""
     try:
         with open(EPS_SKIP_FILE) as f:
             return {ln.strip() for ln in f if ln.strip()}
@@ -221,79 +244,77 @@ def mark_empty(ticker: str) -> None:
 
 def main():
     if EPS_TICKERS:
-        # Explicit test/refresh mode — fetch exactly these, ignore resume-skip.
         names = [t.strip().upper() for t in EPS_TICKERS.split(",") if t.strip()]
         batch = pending = pd.DataFrame({"Ticker": names, "Name": names})
         print(f"Explicit tickers (bypassing resume-skip): {', '.join(names)}\n")
     else:
         df = pd.read_csv(EPS_CSV).rename(columns={"Symbol": "Ticker"})[["Ticker", "Name"]]
+        if EPS_SHARDS > 1:                       # disjoint stride for this shard
+            df = df.iloc[EPS_SHARD::EPS_SHARDS]
         done = fetch_done_tickers()
         skip_empty = load_skip_empty()
         pending = df[~df["Ticker"].isin(done | skip_empty)].reset_index(drop=True)
-        batch = pending.iloc[EPS_OFFSET:EPS_OFFSET + EPS_LIMIT]
+        batch = pending.head(EPS_LIMIT)
 
         print(
-            f"Universe {len(df)} · already seeded {len(done)} · known-empty "
-            f"{len(skip_empty)} · pending {len(pending)} · offset {EPS_OFFSET}"
+            f"Shard {EPS_SHARD}/{EPS_SHARDS} · this shard's rows {len(df)} · "
+            f"already seeded {len(done)} · pending here {len(pending)}"
         )
         if batch.empty:
-            print("✅ Nothing to crawl at this offset — everything here is seeded.")
+            print("✅ Nothing left for this shard — its partition is fully seeded.")
             return
-        print(
-            f"Processing {len(batch)} this run (pending[{EPS_OFFSET}:{EPS_OFFSET + len(batch)}]) "
-            f"with {len(AV_KEYS)} key(s), sleep {EPS_SLEEP}s\n"
-        )
+        print(f"Processing {len(batch)} tickers via SEC EDGAR, sleep {EPS_SLEEP}s\n")
+
+    cik_map = fetch_cik_map()
+    print(f"SEC ticker→CIK map: {len(cik_map)} US filers\n")
 
     ok = empty = failed = 0
-    key_idx = 0
+    sec_n = yf_n = 0
     rows_iter = list(batch.itertuples(index=False))
-    i = 0
-    while i < len(rows_iter):
-        ticker, name = rows_iter[i].Ticker, rows_iter[i].Name
-        key = AV_KEYS[key_idx]
-        print(f"[{i + 1}/{len(rows_iter)}] {ticker} ({name})  key ...{key[-4:]}")
+    for i, r in enumerate(rows_iter):
+        ticker, name = r.Ticker, r.Name
+        cik = lookup_cik(cik_map, ticker)
+        tag = f"CIK {cik}" if cik is not None else "non-US → yfinance"
+        print(f"[{i + 1}/{len(rows_iter)}] {ticker} ({name})  {tag}")
+
+        rows, src = [], None
         try:
-            data = fetch_av_earnings(ticker, key)
-        except RateLimited as e:
-            print(f"  ⛔ key ...{key[-4:]} rate-limited: {e}")
-            key_idx += 1
-            if key_idx >= len(AV_KEYS):
-                print("  All keys exhausted for today — stopping. Re-run with "
-                      "fresh keys to continue where this left off.")
-                break
-            print(f"  ↻ rotating to key ...{AV_KEYS[key_idx][-4:]}, retrying {ticker}")
-            continue  # retry SAME ticker with the next key (don't advance i)
+            if cik is not None:                  # US filer → SEC (deep)
+                rows = build_rows(ticker, cik)
+                src = "sec"
+            if not rows:                         # non-US, or SEC had nothing → yfinance
+                rows = build_rows_yf(ticker)
+                src = "yfinance"
         except Exception as e:
             print(f"  ❌ fetch failed: {e}")
             failed += 1
-            i += 1
             time.sleep(EPS_SLEEP)
             continue
 
-        rows = build_rows(ticker, data)
         if not rows:
-            print("  ℹ️ no EPS data (try the primary listing, e.g. GOOGL not GOOG)")
-            mark_empty(ticker)  # remember so we never re-fetch it
+            print("  ℹ️ no Basic EPS (SEC or yfinance)")
+            mark_empty(ticker)
             empty += 1
         else:
-            n_a = sum(1 for r in rows if r["period_type"] == "annual")
+            n_a = sum(1 for x in rows if x["period_type"] == "annual")
             n_q = len(rows) - n_a
             try:
                 supabase.table("eps_history").upsert(
                     rows, on_conflict="ticker,period_type,fiscalDateEnding"
                 ).execute()
-                print(f"  ✅ {n_a} annual · {n_q} quarterly")
+                print(f"  ✅ {n_a} annual · {n_q} quarterly [{src}]")
                 ok += 1
+                if src == "sec":
+                    sec_n += 1
+                else:
+                    yf_n += 1
             except Exception as e:
                 print(f"  ❌ upsert failed: {e}")
                 failed += 1
 
-        i += 1
-        if i < len(rows_iter):
-            time.sleep(EPS_SLEEP)
+        time.sleep(EPS_SLEEP)
 
-    remaining = len(pending) - ok - empty
-    print(f"\n✅ {ok}   ℹ️ {empty} no-eps   ❌ {failed} failed   ·   ~{remaining} still pending")
+    print(f"\n✅ {ok} ({sec_n} sec · {yf_n} yfinance)   ℹ️ {empty} no-eps   ❌ {failed} failed")
 
 
 if __name__ == "__main__":

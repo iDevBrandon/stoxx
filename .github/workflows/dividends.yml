@@ -1,0 +1,52 @@
+name: Stoxx — Dividend History (yfinance)
+
+# Full dividend history from Yahoo Finance via yfinance: raw + split-adjusted
+# per-payment amounts, frequency, special-dividend flags, and a per-ticker
+# summary (TTM, forward yield, CAGR, growth streak). Free, no key, no daily cap.
+# Global coverage. 4 disjoint stride shards run in parallel; resume-skip
+# continues across runs.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 6 * * *"        # daily 06:30 UTC (after the EPS job)
+
+jobs:
+  dividends:
+    name: Dividends shard ${{ matrix.shard }}/4
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shard: [0, 1, 2, 3]
+
+    env:
+      FINANCE_SUPABASE_URL: ${{ secrets.FINANCE_SUPABASE_URL }}
+      FINANCE_SECRET_KEY:   ${{ secrets.FINANCE_SECRET_KEY }}
+      DIV_SHARD:            ${{ matrix.shard }}
+      DIV_SHARDS:           "4"
+      DIV_LIMIT:            "3000"
+      DIV_SLEEP:            "1.0"
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: dividends/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r dividends/requirements.txt
+
+      - name: Run dividend crawler shard
+        run: python dividends/main.py
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "::error::Dividends shard ${{ matrix.shard }} failed — check logs above"
