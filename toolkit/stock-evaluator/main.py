@@ -14,11 +14,11 @@ load_dotenv()
 # Supabase client (optional)
 # -----------------------------
 FINANCE_SUPABASE_URL = os.getenv("FINANCE_SUPABASE_URL")
-FINANCE_SECRET_KEY = os.getenv("FINANCE_SECRET_KEY")
+FINANCE_SUPABASE_SECRET_KEY = os.getenv("FINANCE_SUPABASE_SECRET_KEY")
 supabase = None
 
-if FINANCE_SUPABASE_URL and FINANCE_SECRET_KEY:
-    supabase = create_client(FINANCE_SUPABASE_URL, FINANCE_SECRET_KEY)
+if FINANCE_SUPABASE_URL and FINANCE_SUPABASE_SECRET_KEY:
+    supabase = create_client(FINANCE_SUPABASE_URL, FINANCE_SUPABASE_SECRET_KEY)
     print("[INFO] Supabase client initialized")
 else:
     print("[INFO] Supabase not configured, running in local mode")

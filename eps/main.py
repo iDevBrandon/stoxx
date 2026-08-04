@@ -25,7 +25,7 @@ parallel jobs (shard 0 = rows 0,4,8…). No overlap, ever.
 
 Env (.env locally / GitHub Actions secrets):
   FINANCE_SUPABASE_URL   Supabase project URL
-  FINANCE_SECRET_KEY     Supabase SECRET key (sb_secret_…) — needed for writes
+  FINANCE_SUPABASE_SECRET_KEY     Supabase SECRET key (sb_secret_…) — needed for writes
   EPS_LIMIT              tickers to process this run (default 500)
   EPS_SLEEP              seconds between SEC calls (default 0.5 → under 10/s)
   EPS_CSV               universe csv (default global500.csv)
@@ -49,11 +49,11 @@ from supabase import Client, create_client
 load_dotenv()
 
 SUPABASE_URL = os.getenv("FINANCE_SUPABASE_URL")
-SUPABASE_KEY = os.getenv("FINANCE_SECRET_KEY")
+SUPABASE_KEY = os.getenv("FINANCE_SUPABASE_SECRET_KEY")
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise SystemExit(
         "Missing Supabase creds. Set FINANCE_SUPABASE_URL and the SECRET key "
-        "FINANCE_SECRET_KEY (sb_secret_…) in .env."
+        "FINANCE_SUPABASE_SECRET_KEY (sb_secret_…) in .env."
     )
 EPS_LIMIT = int(os.getenv("EPS_LIMIT", "500"))
 EPS_YEARS = int(os.getenv("EPS_YEARS", "10"))   # keep only the last N years (0 = all)

@@ -14,7 +14,7 @@ jobs:
 
     env:
       FINANCE_SUPABASE_URL: ${{ secrets.FINANCE_SUPABASE_URL }}
-      FINANCE_SECRET_KEY: ${{ secrets.FINANCE_SECRET_KEY }}
+      FINANCE_SUPABASE_SECRET_KEY: ${{ secrets.FINANCE_SUPABASE_SECRET_KEY }}
 
     steps:
       - name: Checkout repo

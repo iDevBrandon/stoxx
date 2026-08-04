@@ -36,7 +36,7 @@ jobs:
       - name: Fetch All Indicators
         env:
           FINANCE_SUPABASE_URL: ${{ secrets.FINANCE_SUPABASE_URL }}
-          FINANCE_SECRET_KEY: ${{ secrets.FINANCE_SECRET_KEY }}
+          FINANCE_SUPABASE_SECRET_KEY: ${{ secrets.FINANCE_SUPABASE_SECRET_KEY }}
         run: |
           cd indices
           python fetch_all_indicators.py --output ../fetch_indicators_summary.json
@@ -44,7 +44,7 @@ jobs:
       - name: Insert Indicators to Database
         env:
           FINANCE_SUPABASE_URL: ${{ secrets.FINANCE_SUPABASE_URL }}
-          FINANCE_SECRET_KEY: ${{ secrets.FINANCE_SECRET_KEY }}
+          FINANCE_SUPABASE_SECRET_KEY: ${{ secrets.FINANCE_SUPABASE_SECRET_KEY }}
         run: |
           cd indices
           python insert_indicators.py --input ../fetch_indicators_summary.json

@@ -10,10 +10,10 @@ from supabase import create_client, Client
 class IndicatorsInserter:
     def __init__(self):
         self.supabase_url = os.environ.get("FINANCE_SUPABASE_URL")
-        self.supabase_key = os.environ.get("FINANCE_SECRET_KEY")
+        self.supabase_key = os.environ.get("FINANCE_SUPABASE_SECRET_KEY")
         
         if not self.supabase_url or not self.supabase_key:
-            raise ValueError("Missing Supabase credentials (FINANCE_SUPABASE_URL, FINANCE_SECRET_KEY)")
+            raise ValueError("Missing Supabase credentials (FINANCE_SUPABASE_URL, FINANCE_SUPABASE_SECRET_KEY)")
             
         self.supabase: Client = create_client(self.supabase_url, self.supabase_key)
     

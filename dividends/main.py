@@ -17,7 +17,7 @@ SHARDING: DIV_SHARD / DIV_SHARDS split the universe into disjoint strides.
 
 Env (.env locally / GitHub Actions secrets):
   FINANCE_SUPABASE_URL   Supabase project URL
-  FINANCE_SECRET_KEY     Supabase SECRET key (sb_secret_…) — needed for writes
+  FINANCE_SUPABASE_SECRET_KEY     Supabase SECRET key (sb_secret_…) — needed for writes
   DIV_LIMIT              tickers to process this run (default 500)
   DIV_YEARS              keep only the last N years of payments (default 0 = all)
   DIV_SLEEP              seconds between tickers (default 1.0)
@@ -41,11 +41,11 @@ from supabase import Client, create_client
 load_dotenv()
 
 SUPABASE_URL = os.getenv("FINANCE_SUPABASE_URL")
-SUPABASE_KEY = os.getenv("FINANCE_SECRET_KEY")
+SUPABASE_KEY = os.getenv("FINANCE_SUPABASE_SECRET_KEY")
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise SystemExit(
         "Missing Supabase creds. Set FINANCE_SUPABASE_URL and the SECRET key "
-        "FINANCE_SECRET_KEY (sb_secret_…) in .env."
+        "FINANCE_SUPABASE_SECRET_KEY (sb_secret_…) in .env."
     )
 DIV_LIMIT = int(os.getenv("DIV_LIMIT", "500"))
 DIV_YEARS = int(os.getenv("DIV_YEARS", "0"))     # 0 = keep full history

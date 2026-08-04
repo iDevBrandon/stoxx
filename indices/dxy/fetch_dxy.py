@@ -13,7 +13,7 @@ load_dotenv()
 class DXYFetcher:
     def __init__(self):
         self.supabase_url = os.getenv("FINANCE_SUPABASE_URL")
-        self.supabase_key = os.getenv("FINANCE_SECRET_KEY") 
+        self.supabase_key = os.getenv("FINANCE_SUPABASE_SECRET_KEY") 
         if self.supabase_url and self.supabase_key:
             self.supabase = create_client(self.supabase_url, self.supabase_key)
         else:

@@ -4,10 +4,10 @@ from supabase import create_client, Client
 
 def main():
     supabase_url = os.environ.get("FINANCE_SUPABASE_URL")
-    supabase_key = os.environ.get("FINANCE_SECRET_KEY")
+    supabase_key = os.environ.get("FINANCE_SUPABASE_SECRET_KEY")
     
     if not supabase_url or not supabase_key:
-        print("Error: Missing Supabase credentials (FINANCE_SUPABASE_URL, FINANCE_SECRET_KEY)")
+        print("Error: Missing Supabase credentials (FINANCE_SUPABASE_URL, FINANCE_SUPABASE_SECRET_KEY)")
         return
         
     supabase: Client = create_client(supabase_url, supabase_key)
