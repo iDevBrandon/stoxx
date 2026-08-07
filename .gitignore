@@ -5,3 +5,7 @@ eps/.eps_empty.txt
 
 # FUSE mount artifacts
 .fuse_hidden*
+
+# Python bytecode
+__pycache__/
+*.pyc

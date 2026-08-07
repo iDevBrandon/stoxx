@@ -84,6 +84,8 @@ def fetch_cik_map() -> dict:
 
 def lookup_cik(cik_map: dict, ticker: str):
     """Match a CSV ticker to SEC's CIK, tolerating . vs - share-class suffixes."""
+    if not isinstance(ticker, str):
+        return None
     up = ticker.upper()
     for cand in (up, up.replace(".", "-"), up.replace("-", ".")):
         if cand in cik_map:
@@ -248,7 +250,14 @@ def main():
         batch = pending = pd.DataFrame({"Ticker": names, "Name": names})
         print(f"Explicit tickers (bypassing resume-skip): {', '.join(names)}\n")
     else:
-        df = pd.read_csv(EPS_CSV).rename(columns={"Symbol": "Ticker"})[["Ticker", "Name"]]
+        # keep_default_na=False stops pandas from coercing real ticker strings
+        # like "NA" (Nano Labs), "NULL" or "None" into a float NaN, which later
+        # crashes ticker.upper(). dtype=str keeps numeric-looking tickers as text.
+        df = pd.read_csv(
+            EPS_CSV, dtype={"Symbol": str}, keep_default_na=False
+        ).rename(columns={"Symbol": "Ticker"})[["Ticker", "Name"]]
+        df["Ticker"] = df["Ticker"].str.strip()
+        df = df[df["Ticker"] != ""]          # drop genuinely-empty ticker cells
         if EPS_SHARDS > 1:                       # disjoint stride for this shard
             df = df.iloc[EPS_SHARD::EPS_SHARDS]
         done = fetch_done_tickers()
@@ -273,6 +282,10 @@ def main():
     rows_iter = list(batch.itertuples(index=False))
     for i, r in enumerate(rows_iter):
         ticker, name = r.Ticker, r.Name
+        if not isinstance(ticker, str) or not ticker.strip():
+            print(f"[{i + 1}/{len(rows_iter)}] ⚠️  skipping blank/invalid ticker (name={name!r})")
+            continue
+        ticker = ticker.strip()
         cik = lookup_cik(cik_map, ticker)
         tag = f"CIK {cik}" if cik is not None else "non-US → yfinance"
         print(f"[{i + 1}/{len(rows_iter)}] {ticker} ({name})  {tag}")

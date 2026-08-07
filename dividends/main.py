@@ -200,9 +200,16 @@ def main():
         batch = pd.DataFrame({"Ticker": names, "Name": names, "country": None})
         print(f"Explicit tickers (bypassing resume-skip): {', '.join(names)}\n")
     else:
-        df = pd.read_csv(DIV_CSV).rename(columns={"Symbol": "Ticker"})
+        # keep_default_na=False: treat ticker strings like "NA" (Nano Labs),
+        # "NULL", "None" as real tickers instead of float NaN (which crashes
+        # .upper()/yfinance). dtype=str keeps numeric-looking tickers as text.
+        df = pd.read_csv(
+            DIV_CSV, dtype={"Symbol": str}, keep_default_na=False
+        ).rename(columns={"Symbol": "Ticker"})
         cols = [c for c in ("Ticker", "Name", "country") if c in df.columns]
         df = df[cols]
+        df["Ticker"] = df["Ticker"].str.strip()
+        df = df[df["Ticker"] != ""]          # drop genuinely-empty ticker cells
         if "country" not in df.columns:
             df["country"] = None
         if DIV_SHARDS > 1:                        # disjoint stride for this shard
