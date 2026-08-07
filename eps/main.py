@@ -61,6 +61,7 @@ EPS_SLEEP = float(os.getenv("EPS_SLEEP", "0.5"))
 EPS_CSV = os.getenv("EPS_CSV", "global500.csv")
 EPS_SHARD = int(os.getenv("EPS_SHARD", "0"))
 EPS_SHARDS = int(os.getenv("EPS_SHARDS", "1"))
+EPS_UNIVERSE_LIMIT = 500  # only the first N tickers of global500.csv (0 = all); bump this to expand
 EPS_TICKERS = os.getenv("EPS_TICKERS", "").strip()
 EPS_SKIP_FILE = os.getenv(
     "EPS_SKIP_FILE", os.path.join(os.path.dirname(__file__), ".eps_empty.txt")
@@ -258,6 +259,8 @@ def main():
         ).rename(columns={"Symbol": "Ticker"})[["Ticker", "Name"]]
         df["Ticker"] = df["Ticker"].str.strip()
         df = df[df["Ticker"] != ""]          # drop genuinely-empty ticker cells
+        if EPS_UNIVERSE_LIMIT > 0:               # only the first N tickers of the universe
+            df = df.head(EPS_UNIVERSE_LIMIT)
         if EPS_SHARDS > 1:                       # disjoint stride for this shard
             df = df.iloc[EPS_SHARD::EPS_SHARDS]
         done = fetch_done_tickers()

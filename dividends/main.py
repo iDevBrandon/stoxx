@@ -53,6 +53,7 @@ DIV_SLEEP = float(os.getenv("DIV_SLEEP", "1.0"))
 DIV_CSV = os.getenv("DIV_CSV", "global500.csv")
 DIV_SHARD = int(os.getenv("DIV_SHARD", "0"))
 DIV_SHARDS = int(os.getenv("DIV_SHARDS", "1"))
+DIV_UNIVERSE_LIMIT = 500  # only the first N tickers of global500.csv (0 = all); bump this to expand
 DIV_TICKERS = os.getenv("DIV_TICKERS", "").strip()
 DIV_SKIP_FILE = os.getenv(
     "DIV_SKIP_FILE", os.path.join(os.path.dirname(__file__), ".div_empty.txt")
@@ -212,6 +213,8 @@ def main():
         df = df[df["Ticker"] != ""]          # drop genuinely-empty ticker cells
         if "country" not in df.columns:
             df["country"] = None
+        if DIV_UNIVERSE_LIMIT > 0:                # only the first N tickers of the universe
+            df = df.head(DIV_UNIVERSE_LIMIT)
         if DIV_SHARDS > 1:                        # disjoint stride for this shard
             df = df.iloc[DIV_SHARD::DIV_SHARDS]
         done = fetch_done_tickers()
