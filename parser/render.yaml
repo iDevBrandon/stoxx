@@ -1,0 +1,11 @@
+# Render Blueprint — free web service (PyMuPDF only, no Docling/torch → fits 512MB).
+# Deploy: push this repo to GitHub, then on Render → New → Blueprint → pick the repo.
+services:
+  - type: web
+    name: finance-parser
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn finance_parser.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true

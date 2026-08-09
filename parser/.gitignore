@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtualenv
+.venv/
+venv/
+env/
+
+# Docling / HF model caches (downloaded on first run)
+.cache/
+*.onnx
+
+# Local scratch
+*.pdf
+out/
+*.json
+!package*.json
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
