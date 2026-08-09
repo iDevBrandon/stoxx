@@ -67,7 +67,7 @@ EPS_SKIP_FILE = os.getenv(
     "EPS_SKIP_FILE", os.path.join(os.path.dirname(__file__), ".eps_empty.txt")
 )
 # SEC requires a descriptive User-Agent with a contact address.
-HEADERS = {"User-Agent": os.getenv("EPS_UA", "oxinion-finance eps-crawler (idevbrandon@gmail.com)")}
+HEADERS = {"User-Agent": os.getenv("EPS_UA", "eps-crawler")}
 
 SEC_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
 SEC_CONCEPT_URL = "https://data.sec.gov/api/xbrl/companyconcept/CIK{cik:010d}/us-gaap/{concept}.json"
