@@ -1,6 +1,5 @@
 import os
-import requests
-from bs4 import BeautifulSoup
+import csv
 from dotenv import load_dotenv
 from supabase import create_client
 import yfinance as yf
@@ -27,43 +26,24 @@ else:
 # Configuration
 # -----------------------------
 
-def fetch_ioo_tickers():
-    """Fetch the top 100 global companies from companiesmarketcap.com (first page)."""
+def read_global500_tickers():
+    """Load the Global 500 universe from stoxx/global500.csv (Symbol column).
+
+    This is the "Global 500" index group — the Market Terminal filters signals
+    by index_names LIKE '%Global 500%'."""
+    csv_path = os.path.join(os.path.dirname(__file__), "..", "..", "global500.csv")
+    tickers = []
     try:
-        headers = {
-            "User-Agent": (
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/120.0.0.0 Safari/537.36"
-            ),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        }
-        r = requests.get("https://companiesmarketcap.com/", headers=headers, timeout=15)
-        r.raise_for_status()
-        soup = BeautifulSoup(r.text, "html.parser")
-        tickers = []
-        # Tickers live in: <div class="company-code"><span class="rank d-none"></span>2222.SR</div>
-        for div in soup.select("div.company-code"):
-            # Remove the rank span, then grab remaining text
-            for span in div.select("span.rank"):
-                span.decompose()
-            ticker = div.get_text(strip=True)
-            if ticker and ticker not in tickers:
-                tickers.append(ticker)
-        print(f"[INFO] Fetched {len(tickers)} IOO tickers from companiesmarketcap.com")
+        with open(csv_path, newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                sym = (row.get("Symbol") or "").strip().upper()
+                if sym and sym not in tickers:
+                    tickers.append(sym)
+        print(f"[INFO] Loaded {len(tickers)} tickers from global500.csv")
         return tickers
     except Exception as e:
-        print(f"[WARN] Could not fetch IOO tickers: {e}")
+        print(f"[WARN] Could not read global500.csv: {e}")
         return []
-
-# NOTE: IOO's ticker list is fetched lazily inside __main__ (only when
-# "IOO" is actually enabled there), not at import time — a bare
-# `IOO = fetch_ioo_tickers()` here used to scrape companiesmarketcap.com
-# live as a side effect of just importing this module, even if the caller
-# never wanted IOO for that run.
-
-OXNO = ["INTU", "MSCI" , "CTAS", "NVO",  "HESAY", "LMP.L" ,"ZTS", "V", "KLAC", "APH", "PH","FIX", "DPZ", "QQQM"]
-
 
 QQQ = [
   "NVDA", "AAPL",
@@ -171,39 +151,6 @@ QQQ = [
 ];
 
 
-VIG = [
-    "AVGO","MSFT","AAPL","JPM","LLY","V","XOM","JNJ","WMT","MA","COST","ABBV",
-    "BAC","HD","PG","ORCL","CSCO","UNH","IBM","KO","CAT","MRK","GS","ABT",
-    "MCD","MS","PEP","LRCX","LIN","AMGN","QCOM","NEE","INTU","APH","SPGI",
-    "KLAC","ACN","TXN","BLK","DHR","UNP","LOW","MDT","ETN","ADI","SYK","HON",
-    "MCK","CB","ADP","CME","CMCSA","SBUX","LMT","MMC","ICE","GD","WM","BK",
-    "SHW","NOC","NKE","MDLZ","AON","MCO","ELV","EMR","PNC","COR","ECL","CMI",
-    "TEL","ITW","TRV","CSX","CL","CTAS","AJG","SRE","MSI","APD","ZTS","ALL",
-    "BDX","PSX","AFL","LHX","CAH","XEL","ROP","FAST","DHI","ROK","RSG","MSCI",
-    "ETR","AMP","MET","GWW","PEG","TGT","NDAQ","VMC","HIG","RMD","NUE","SYY",
-    "PAYX","FIX","STT","XYL","TSCO","MCHP","FITB","KR","AEE","DTE","HSY",
-    "ATO","RJF","CBOE","BR","STE","CINF","DOV","AWK","VLTO","HPQ","BRO","WRB",
-    "STLD","HUBB","WSM","CMS","PPG","DGX","CASY","CHD","NI","EXPD","WST",
-    "HEI-A","CDW","CHRW","RBA","GPC","LNT","SNA","PNR","PFG","MKC","TPL","TSN",
-    "RGLD","LII","ALB","FNF","RS","ITT","ALLE","MAS","DKS","CSL","RPM","GGG",
-    "AVY","JBHT","CLX","LECO","DPZ","IEX","RNR","NDSN","HEI-A","JKHY","RGA","EVR",
-    "HII","UNM","WSO","DTM","AIZ","SCI","WTRG","GL","WMS","ENSG","ORI","DCI",
-    "FDS","BAH","AIT","AFG","OC","TTEK","SSB","WTFC","DOX","PRI","ATR","OSK",
-    "LAD","POOL","CFR","UMBF","ZION","SEIC","AOS","SOLS","WTS","NFG","ERIE",
-    "CADE","CHDN","EMN","R","IDA","TTC","INGR","SSD","AL","CBSH","FAF","THG",
-    "AGCO","PB","CHE","LFUS","MKTX","MSA","GATX","RLI","THO","BF-B","TXNM",
-    "UFPI","BMI","MORN","TKR","HOMB","BCPC","OZK","SIGI","BC","DLB","FFIN",
-    "AGO","CNO","AVT","MWA","GHC","UCB","EXPO","FELE","INDB","IBOC","SFBS",
-    "SLGN","MATX","OTTR","BRC","MZTI","CBT","KAI","CPK","FUL","MGEE","SXI",
-    "CBU","GFF","AWR","AVNT","HWKN","CWT","ABM","WDFC","MGRC","MTRN","BOKF",
-    "TOWN","BANF","HI","WLK","CSGS","NBTB","FRME","EFSC","DDS","HNI","KWR",
-    "POWI","HMN","IOSP","NNI","SYBT","CHCO","CNS","ANDE","WOR","ALG","LMAT",
-    "NHC","AGM","TCBK","WLY","HTO","LKFN","JJSF","TNC","NSP","LNN","WABC",
-    "GABC","SRCE","BF-A","BFC","WS","SCL","GRC","MSEX","UTL","FMBH","APOG",
-    "AMSF","TR","MBWM","IBCP","RBCAA","FCBC","ODC","NRIM","SMBC","CASS",
-    "YORW","FBIZ","HY","UNTY","SCVL"
-]
-
 VOO = [
   "NVDA","AAPL","MSFT","AMZN","GOOGL","GOOG","AVGO","META","TSLA","MU",
   "BRK-B","LLY","JPM","WMT","AMD","V","JNJ","XOM","INTC","MA",
@@ -257,68 +204,6 @@ VOO = [
   "FDS","NCLH","IT","TTD","UHS","SWKS","AOS","ARE","BLDR","TAP",
   "MOS","NWS","SATS"
 ];
-
-
-VXUS = [
-    'TSM', 'TCEHY', 'ASML', 'BABA', "AZN","RHHBY", "NSRGY", "SAP", "HSBC",
-    "NVS", "RY","SHEL", "TM", "SIEGY", "SHOP", "LVMUY", "SONY", "MUFG", "CMWAY", "ALIZY","SAN", "NVO", "SBGSY", "UL", "TD", "IBDRY", "HTHIY", "EADSY", "HDB", "UBS","BBVA", "TTE", "RYCEY", "BTI", "SAFRY", "UNCRY", "ABBNY", "CFRUY", "SMFG","AAIGF", "SNY", "ENB", "DTEGY", "SFTBY", "ESLOY",  "BN", "MSBHF","RELX", "TKOMF", "BAESY", "INFY", "LDNXF", "CNI", "DEO", "DBOEY",'RACE', 'HESAY', "FJTSY", "WCN", "DSDVY", "ATD.TO", "FNV", "DOL.TO", "ASAZY", "IFC.TO", "GVDNY", "UCBJY", "SVNDY", "TTDKY", "SXYAY", "SDZNY", "NTTYY", "SMPNY", "AHT.L",  
-]
-
-
-GURU = [
-    "FLUT", "ALC", "MSFT", "V", "INTU", "GE", "AMZN", "MCO", "MMC", "ICE",
-    "GTLS", "APTV", "WFRD", "AXTA", "OSK", "ASH", "GPK", "NOMD", "PVH", "DOLE",
-    "TDG", "MA", "HLT", "GOOGL", "FICO", "BRK-B", "WM", "CNI", "CAT", "DE",
-    "ECL", "WMT", "FDX", "KOF", "UBER", "BN", "HHH", "GOOG", "QSR", "CMG",
-    "SEG", "NBR", "LNC", "GTN", "QUAD", "BFH", "TDAY", "CNDT", "AXL", "JELD",
-    "JXN", "IQV", "WBD", "PSX", "FCNCA", "LAD", "ABNB", "CRM", "EFX", "SCHW",
-    "JOE", "EPD", "OZK", "WRB", "OXY", "ET", "BRK-A", "AAPL", "FANG", "IBKR",
-    "GIL", "NRP", "GWRE", "LEN", "SGU", "IEP", "CVI", "SWX", "UAN", "SATS",
-    "IFF", "CTRI", "JBLU", "AEP", "CZR", "JNJ", "REZI", "BOKF", "AMG", "SNA",
-    "PHIN", "BAC", "B", "MHK", "APA", "SE", "NVDA", "META", "TTWO", "APP",
-    "TSM", "RDDT", "SPGI", "CP", "FER", "DG", "KGC", "NEM", "OLN", "DLTR",
-    "FIVE", "DECK", "VLO", "COF", "AMAT", "USB", "CVS", "MGM", "MKL", "VTRS",
-    "KKR", "ORLY", "CSGP", "ROP", "CVNA", "HGV", "CDLX", "SWIM", "PCG", "NSC",
-    "FLUT", "CASY", "LOAR", "ABG", "SGI", "CPNG", "WTW", "UHAL-B", "GRBK",
-    "FLR", "CNR", "BHF", "KD", "PENN", "DHT", "TEVA", "JPM", "MS", "PNC",
-    "QCOM", "MDT", "BKNG", "TSCO", "MSI", "BABA", "WHR", "KWEB", "NRG", "VST",
-    "FOUR", "OKTA", "PCOR", "MNDY", "BRZE", "NCNO", "BLND", "VERX", "RTX",
-    "JCI", "FISV", "MET", "BK", "PDD", "DIS", "ASML", "ORCL", "WPM", "BDX",
-    "IMO", "HCA", "CHRW", "FN", "IDCC", "SNX", "RLI", "UGI", "SFBS", "REVG",
-    "ARW", "SIRI", "SYF", "STLA", "ALLY", "C", "HEI-A", "AME", "MEDP", "PGR",
-    "IBP", "ELV", "OMF", "SLM", "AN", "RYAAY", "MPLX", "BLDR", "FNF", "VFC",
-    "YETI", "GXO", "EVH", "CGNX", "FRPT", "PTLO", "BL", "BRCC", "GM", "TOL",
-    "PHM", "DHI", "AVTR", "BAX", "LEA", "GPI", "EQH", "RMNI", "SDHC", "AXP",
-    "RACE", "MU", "DJCO", "CTRA", "HOLX", "AKAM", "DD", "NUE", "WST", "GSK",
-    "HSY", "BMY", "BIIB", "TRMD", "EXE", "GTX", "AU", "VNOM", "TDS", "TLN",
-    "STKL", "CORZ", "SYK", "LLY", "ABT", "PGR", "FERG", "BSX", "CRH", "APH",
-    "GNRC", "SPHR", "MSGE", "NCLH", "CRL", "LH", "IPG-OLD", "KN", "MAT", "CG",
-    "TSLA", "TRUP", "BUR", "BAYRY", "FLG", "OGN", "BP", "MRK", "SEB", "IDT",
-    "NU", "UNP", "PM", "NTRA", "COOP-OLD", "VRT", "MP", "MIR", "APO", "FIHL",
-    "RRX", "EWBC", "SOC", "TKO", "TMO", "MDLZ", "PEP", "PYPL", "EBAY", "JPM",
-    "UNH", "GGG", "TTC", "CNX", "KHC", "IAC", "EXXRF", "ACI", "RYN", "REGN",
-    "PENG", "TCBI", "AXS", "EVRG", "BEPC", "NVST", "CACI", "MOH", "LULU",
-    "HCC", "AMR", "RIG", "VAL", "NE", "JHG", "SOLV", "IVZ", "WEN", "GEHC",
-    "SGOV", "CROX", "DHR", "AER", "AZO", "RPRX", "ENOV", "SHOP", "AVGO",
-    "ORLA", "CLF", "BB", "KW", "ATS", "TAP", "VOO", "HUM", "FMS", "WFC", "MGA",
-    "DG", "VNT", "ST", "LKQ", "ABM", "OMC", "SLB", "CACC", "WIX", "HTHT",
-    "YUMC", "RYCEF", "FWONK", "UMGNF", "CNSWF", "ERFSF", "QXO", "DB", "EFA",
-    "SW", "WTW", "WCC", "LBTYK", "LPLA", "ADI", "TEL", "CMCSA", "JDEPY",
-    "HKHHF", "PROSF", "ADP", "WAT", "MAR", "TDW", "FPH", "CBRE", "BCC",
-    "LEN-B", "PLD", "ROG", "SAFRF", "RHHVF", "TTE", "IONS", "BYNN.F", "NSRGY",
-    "UOVEY", "PUKPF", "MSCI", "RBLX", "RKT", "MDB", "LLYVK", "NSIT", "MCD",
-    "FTV", "APD", "AON", "TMO", "IEX", "CB", "KO", "BLK", "CNQ", "FOX", "PG",
-    "NWSA"
-]
-
-ALT = [
-  "USDU","FXE","FXF","FXY","FXB","FXC","FXA",    
-  "VXX",                                         
-  "PDBC","GLD",                                  
-  "BITO",                                        
-  "REET","IGF"                                  
-]
-
 
 
 RSI_WINDOW = 14
@@ -439,26 +324,20 @@ def prune_stale_signals(days=STALE_DAYS):
 # -----------------------------
 if __name__ == "__main__":
 
-    # Toggle which indexes this run covers. IOO does a live scrape of
-    # companiesmarketcap.com, so it's only fetched below if it's actually
-    # in this list — no more unconditional scraping at import time.
-    ENABLED_INDEXES = ["IOO", "QQQ", "VOO", "OXNO"]
-    # ENABLED_INDEXES += ["VIG", "VXUS", "GURU", "OXNO", "ALT"]  # wider coverage
+    # Toggle which indexes this run covers. "Global 500" is the Global 500
+    # universe, read from stoxx/global500.csv. QQQ / VOO are the Nasdaq-100 /
+    # S&P 500 views.
+    ENABLED_INDEXES = ["Global 500", "QQQ", "VOO"]
 
     STATIC_INDEX_TICKERS = {
         "QQQ": QQQ,
         "VOO": VOO,
-        "VIG": VIG,
-        "VXUS": VXUS,
-        "GURU": GURU,
-        "OXNO": OXNO,
-        "ALT": ALT,
     }
 
     INDEX_GROUPS = {}
     for name in ENABLED_INDEXES:
-        if name == "IOO":
-            INDEX_GROUPS["IOO"] = fetch_ioo_tickers()
+        if name == "Global 500":
+            INDEX_GROUPS["Global 500"] = read_global500_tickers()
         elif name in STATIC_INDEX_TICKERS:
             INDEX_GROUPS[name] = STATIC_INDEX_TICKERS[name]
 
