@@ -1,4 +1,4 @@
-name: Stoxx — Fetch IOO Signals
+name: Stoxx — Fetch Global 500 Signals
 
 on:
   schedule:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   fetch-signals:
-    name: Run stock-evaluator for IOO Global 100
+    name: Run stock-evaluator for Global 500
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
