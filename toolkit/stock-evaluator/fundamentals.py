@@ -18,7 +18,7 @@ import yfinance as yf
 from dotenv import load_dotenv
 from supabase import create_client
 
-from main import ALT, GURU, OXNO, QQQ, VIG, VOO, VXUS, fetch_ioo_tickers
+from main import QQQ, VOO, read_global500_tickers
 
 load_dotenv()
 
@@ -181,12 +181,12 @@ if __name__ == "__main__":
     # Same universe as main.py's default run -- keep these in sync manually
     # (there are only two callers, so a shared constant isn't worth the
     # cross-module coupling yet).
-    ENABLED_INDEXES = ["IOO", "QQQ", "VOO"]
-    STATIC_INDEX_TICKERS = {"QQQ": QQQ, "VOO": VOO, "VIG": VIG, "VXUS": VXUS, "GURU": GURU, "OXNO": OXNO, "ALT": ALT}
+    ENABLED_INDEXES = ["Global 500", "QQQ", "VOO"]
+    STATIC_INDEX_TICKERS = {"QQQ": QQQ, "VOO": VOO}
 
     tickers: set[str] = set()
     for name in ENABLED_INDEXES:
-        tickers.update(fetch_ioo_tickers() if name == "IOO" else STATIC_INDEX_TICKERS.get(name, []))
+        tickers.update(read_global500_tickers() if name == "Global 500" else STATIC_INDEX_TICKERS.get(name, []))
 
     print(f"\nEvaluating fundamentals for {len(tickers)} unique tickers\n")
 
